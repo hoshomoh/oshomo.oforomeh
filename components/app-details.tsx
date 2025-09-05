@@ -1,6 +1,6 @@
-import React from "react";
-import Link from "next/link";
-import Image from "next/image";
+import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 import {
   Carousel,
@@ -8,13 +8,13 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel";
+} from '@/components/ui/carousel';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
+} from '@/components/ui/accordion';
 
 import playStoreIcon from '../public/googleplay.svg';
 import appStoreIcon from '../public/appstore.svg';
@@ -40,34 +40,32 @@ type Props = {
     appStore: string;
     playStore: string;
   };
-}
-export function AppDetails({ url, faqs, name, links, description, features, screenshots}: Props) {
+};
+export function AppDetails({ url, faqs, name, links, description, features, screenshots }: Props) {
   return (
     <main className="flex-1 flex flex-col">
       <div className="w-full flex-1 font-mono flex p-8">
         <div className="flex flex-col gap-12 w-[24rem] text-left">
           {/* Top links */}
           <div className="flex items-center gap-2 font-medium">
-            <a className="flex items-center gap-2" href="/">oshomo</a> /{/* */}
-            <a href="/">home</a> /{/* */}
-            <a href={url}>{name}</a>
+            <Link className="flex items-center gap-2" href="/">
+              oshomo
+            </Link>{' '}
+            /{/* */}
+            <Link href="/">home</Link> /{/* */}
+            <Link href={url}>{name}</Link>
           </div>
 
           {/* App Name */}
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-medium">{name}</h2>
             <div className="text-sm font-medium text-balance space-y-4">
-              <p>
-                {description}
-              </p>
+              <p>{description}</p>
             </div>
 
             {/* Download Buttons (side by side) */}
             <div className="mt-4 flex items-center gap-4">
-              <Link
-                href={links.appStore}
-                target="_blank"
-              >
+              <Link href={links.appStore} target="_blank">
                 <Image
                   priority
                   src={appStoreIcon}
@@ -75,16 +73,8 @@ export function AppDetails({ url, faqs, name, links, description, features, scre
                   className="w-36"
                 />
               </Link>
-              <Link
-                href={links.playStore}
-                target="_blank"
-              >
-                <Image
-                  priority
-                  src={playStoreIcon}
-                  alt="Get It on Google Play"
-                  className="w-36"
-                />
+              <Link href={links.playStore} target="_blank">
+                <Image priority src={playStoreIcon} alt="Get It on Google Play" className="w-36" />
               </Link>
             </div>
           </div>
@@ -134,12 +124,8 @@ export function AppDetails({ url, faqs, name, links, description, features, scre
               <Accordion type="single" collapsible className="w-full">
                 {faqs?.map(({ q, a }, idx) => (
                   <AccordionItem key={q} value={`item-${idx}`}>
-                    <AccordionTrigger className="text-left font-semibold">
-                      {q}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-sm leading-6">
-                      {a}
-                    </AccordionContent>
+                    <AccordionTrigger className="text-left font-semibold">{q}</AccordionTrigger>
+                    <AccordionContent className="text-sm leading-6">{a}</AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>

@@ -1,23 +1,24 @@
-import React from "react";
-import {Metadata} from "next";
+import React from 'react';
+import Link from 'next/link';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "About | Oshomo Oforomeh",
+  title: 'About | Oshomo Oforomeh',
   description:
-    "Learn more about Oshomo Oforomeh, Staff Software Engineer with an MSc in Computer Science. Experienced across backend, frontend, and fullstack roles.",
+    'Learn more about Oshomo Oforomeh, Staff Software Engineer with an MSc in Computer Science. Experienced across backend, frontend, and fullstack roles.',
   openGraph: {
-    title: "About | Oshomo Oforomeh",
+    title: 'About | Oshomo Oforomeh',
     description:
-      "Staff Software Engineer with MSc in Computer Science, bridging engineering and product thinking.",
-    url: "https://oshomo.oforomeh.com/about",
-    siteName: "Oshomo Oforomeh",
-    type: "profile",
+      'Staff Software Engineer with MSc in Computer Science, bridging engineering and product thinking.',
+    url: 'https://oshomo.oforomeh.com/about',
+    siteName: 'Oshomo Oforomeh',
+    type: 'profile',
   },
   twitter: {
-    card: "summary",
-    title: "About | Oshomo Oforomeh",
+    card: 'summary',
+    title: 'About | Oshomo Oforomeh',
     description:
-      "Staff Software Engineer with MSc in Computer Science, bridging engineering and product thinking.",
+      'Staff Software Engineer with MSc in Computer Science, bridging engineering and product thinking.',
   },
 };
 
@@ -28,9 +29,17 @@ export default function AboutPage() {
         <div className="flex flex-col gap-12 w-[24rem] text-left">
           {/* Top links */}
           <div className="flex items-center gap-2 font-medium">
-            <a className="flex items-center gap-2" href="/">oshomo</a> /{/* */}
-            <a href="https://linkedin.com/in/hoshomoh/" target="_blank" rel="noreferrer">linkedin</a> /{/* */}
-            <a href="https://github.com/hoshomoh" target="_blank" rel="noreferrer">github</a>
+            <Link className="flex items-center gap-2" href="/">
+              oshomo
+            </Link>{' '}
+            /{/* */}
+            <Link href="https://linkedin.com/in/hoshomoh/" target="_blank" rel="noreferrer">
+              linkedin
+            </Link>{' '}
+            /{/* */}
+            <Link href="https://github.com/hoshomoh" target="_blank" rel="noreferrer">
+              github
+            </Link>
           </div>
 
           {/* About Section */}
@@ -38,10 +47,15 @@ export default function AboutPage() {
             <h2 className="text-lg font-medium">about me</h2>
             <div className="text-sm font-medium text-balance space-y-4">
               <p>
-                My name is <em>Oshomo Oforomeh</em>, a Staff Software Engineer with an MSc in Computer Science. Over the years, I’ve worked across backend, frontend, and full‑stack roles, delivering solutions in payments, e‑commerce, logistics, and travel.
+                My name is <em>Oshomo Oforomeh</em>, a Staff Software Engineer with an MSc in
+                Computer Science. Over the years, I’ve worked across backend, frontend, and
+                full‑stack roles, delivering solutions in payments, e‑commerce, logistics, and
+                travel.
               </p>
               <p>
-                I enjoy bridging the gap between engineering and product thinking. My focus is on building reliable systems, mentoring other engineers, and ensuring technology decisions align with delivering real value to people.
+                I enjoy bridging the gap between engineering and product thinking. My focus is on
+                building reliable systems, mentoring other engineers, and ensuring technology
+                decisions align with delivering real value to people.
               </p>
             </div>
           </div>
@@ -70,7 +84,8 @@ export default function AboutPage() {
               >
                 <span className="underline">citizenship test app</span>
                 <p className="text-foreground text-[0.9rem]">
-                  An app designed to help users prepare effectively for their citizenship test with practice questions and study guides.
+                  An app designed to help users prepare effectively for their citizenship test with
+                  practice questions and study guides.
                 </p>
               </a>
             </div>

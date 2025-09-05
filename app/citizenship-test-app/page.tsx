@@ -1,5 +1,5 @@
-import React from "react";
-import {Metadata} from "next";
+import React from 'react';
+import { Metadata } from 'next';
 import {
   BookOpen,
   ClipboardCheck,
@@ -10,28 +10,28 @@ import {
   LayoutDashboard,
 } from 'lucide-react';
 
-import {AppDetails} from "@/components/app-details";
+import { AppDetails } from '@/components/app-details';
 
 export const metadata: Metadata = {
-  title: "Citizenship Test App | Oshomo Oforomeh",
+  title: 'Citizenship Test App | Oshomo Oforomeh',
   description:
-    "Prepare for your citizenship test with practice questions, study guides, and progress tracking.",
+    'Prepare for your citizenship test with practice questions, study guides, and progress tracking.',
   openGraph: {
-    title: "Citizenship Test App | Oshomo Oforomeh",
+    title: 'Citizenship Test App | Oshomo Oforomeh',
     description:
-      "Your companion for preparing for the citizenship test. Practice, review, and succeed.",
-    url: "https://oshomo.oforomeh.com/citizenship-test-app",
-    siteName: "Oshomo Oforomeh",
-    type: "website",
+      'Your companion for preparing for the citizenship test. Practice, review, and succeed.',
+    url: 'https://oshomo.oforomeh.com/citizenship-test-app',
+    siteName: 'Oshomo Oforomeh',
+    type: 'website',
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Citizenship Test App | Oshomo Oforomeh",
+    card: 'summary_large_image',
+    title: 'Citizenship Test App | Oshomo Oforomeh',
     description:
-      "Your companion for preparing for the citizenship test. Practice, review, and succeed.",
+      'Your companion for preparing for the citizenship test. Practice, review, and succeed.',
   },
   icons: {
-    icon: "/icons/citizenship-test-app.favicon.ico",
+    icon: '/icons/citizenship-test-app.favicon.ico',
   },
 };
 
@@ -55,7 +55,8 @@ export default function ExpenseWisePage() {
     },
     {
       label: 'Progress Tracking',
-      description: 'View your strengths, weaknesses, and improvement over time with visual insights.',
+      description:
+        'View your strengths, weaknesses, and improvement over time with visual insights.',
       icon: LineChart,
     },
     {
@@ -84,8 +85,8 @@ export default function ExpenseWisePage() {
       German Einbürgerungstest or future tests in other countries, our app is designed to 
       help you succeed with confidence.`}
       links={{
-        appStore: "https://apps.apple.com/de/app/citizenship-test-prep/id6749445598",
-        playStore: "https://play.google.com/store/apps/details?id=com.citizenshiptestapp",
+        appStore: 'https://apps.apple.com/de/app/citizenship-test-prep/id6749445598',
+        playStore: 'https://play.google.com/store/apps/details?id=com.citizenshiptestapp',
       }}
     />
   );
