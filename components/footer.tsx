@@ -1,18 +1,22 @@
 import React from 'react';
 import Link from 'next/link';
 
-const links = [
-  {
-    title: 'Home',
-    href: '/',
-  },
-  {
-    title: 'Privacy Policy',
-    href: '/privacy-policy',
-  },
-];
+type Props = {
+  basePath: string;
+};
 
-export function Footer() {
+export function Footer({ basePath }: Props) {
+  const links = [
+    {
+      title: 'Home',
+      href: `${basePath}`,
+    },
+    {
+      title: 'Privacy Policy',
+      href: `${basePath}/privacy-policy`,
+    },
+  ];
+
   return (
     <footer className="py-2 mt-10">
       <div className="mx-auto max-w-5xl px-6">
@@ -29,7 +33,7 @@ export function Footer() {
         </div>
         <span className="text-muted-foreground block text-center text-sm font-roboto">
           {' '}
-          © {new Date().getFullYear()} CitizenshipTestApp, All rights reserved
+          © {new Date().getFullYear()} Oshomo Oforomeh, All rights reserved
         </span>
       </div>
     </footer>

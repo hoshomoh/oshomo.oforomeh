@@ -1,116 +1,82 @@
-import React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import {
-  BookOpen,
-  ClipboardCheck,
-  BrainCircuit,
-  LineChart,
-  WifiOff,
-  Globe,
-  LayoutDashboard,
-} from 'lucide-react';
+import React from "react";
+import {Metadata} from "next";
 
-import { Card } from '@/components/ui/card';
-import { Footer } from '@/components/footer';
-import playStoreIcon from '../public/googleplay.svg';
-import appStoreIcon from '../public/appstore.svg';
-
-const features = [
-  {
-    label: 'Official Questions',
+export const metadata: Metadata = {
+  title: "About | Oshomo Oforomeh",
+  description:
+    "Learn more about Oshomo Oforomeh, Staff Software Engineer with an MSc in Computer Science. Experienced across backend, frontend, and fullstack roles.",
+  openGraph: {
+    title: "About | Oshomo Oforomeh",
     description:
-      'Practice with real questions from the German Einbürgerungstest, including state-specific ones.',
-    icon: BookOpen,
+      "Staff Software Engineer with MSc in Computer Science, bridging engineering and product thinking.",
+    url: "https://oshomo.oforomeh.com/about",
+    siteName: "Oshomo Oforomeh",
+    type: "profile",
   },
-  {
-    label: 'Mock Exams',
-    description: 'Simulate the actual test experience with timed, randomized mock exams.',
-    icon: ClipboardCheck,
+  twitter: {
+    card: "summary",
+    title: "About | Oshomo Oforomeh",
+    description:
+      "Staff Software Engineer with MSc in Computer Science, bridging engineering and product thinking.",
   },
-  {
-    label: 'Smart Study Modes',
-    description: 'Learn by category, difficulty, or past mistakes to maximize retention.',
-    icon: BrainCircuit,
-  },
-  {
-    label: 'Progress Tracking',
-    description: 'View your strengths, weaknesses, and improvement over time with visual insights.',
-    icon: LineChart,
-  },
-  {
-    label: 'Offline Access',
-    description: 'Download content and study anytime, even without an internet connection.',
-    icon: WifiOff,
-  },
-  {
-    label: 'Global Expansion',
-    description: 'Built to support citizenship tests for multiple countries — more coming soon.',
-    icon: Globe,
-  },
-  {
-    label: 'Simple & Clean Interface',
-    description: 'Designed for ease of use with a distraction-free experience.',
-    icon: LayoutDashboard,
-  },
-];
+};
 
-export default function HomePage() {
+export default function AboutPage() {
   return (
-    <section className="py-20">
-      <div className="relative z-10 mx-auto w-full max-w-2xl px-6 lg:px-0">
-        <div className="relative">
-          <Image
-            src="/logo.png"
-            alt="Citizenship Test App Logo"
-            width="80"
-            height="80"
-            className="rounded-(--radius)"
-          />
-          <h1 className="mt-16 max-w-xl text-balance text-5xl font-medium font-unbounded">
-            The Citizenship Test App
-          </h1>
-          <p className="text-muted-foreground mb-6 mt-4 text-balance text-xl font-roboto">
-            Taking the next step toward citizenship? Whether you’re preparing for the German
-            Einbürgerungstest or future tests in other countries, our app is designed to help you
-            succeed with confidence.
-          </p>
-          <div className="flex flex-col items-center gap-2 *:w-full sm:flex-row sm:*:w-auto">
-            <Link
-              href="https://apps.apple.com/de/app/citizenship-test-prep/id6749445598"
-              target="_blank"
-            >
-              <Image priority src={appStoreIcon} alt="Download on the App Store" />
-            </Link>
-            <Link
-              href="https://play.google.com/store/apps/details?id=com.citizenshiptestapp"
-              target="_blank"
-            >
-              <Image priority src={playStoreIcon} alt="Get It on Google Play" />
-            </Link>
+    <main className="flex-1 flex flex-col">
+      <div className="w-full flex-1 font-mono flex p-8">
+        <div className="flex flex-col gap-12 w-[24rem] text-left">
+          {/* Top links */}
+          <div className="flex items-center gap-2 font-medium">
+            <a className="flex items-center gap-2" href="/">oshomo</a> /{/* */}
+            <a href="https://linkedin.com/in/hoshomoh/" target="_blank" rel="noreferrer">linkedin</a> /{/* */}
+            <a href="https://github.com/hoshomoh" target="_blank" rel="noreferrer">github</a>
           </div>
-        </div>
-        <section>
-          <div className="py-12">
-            <div className="mx-auto w-full max-w-5xl">
-              <div className="mt-16 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2">
-                {features.map((feature, i) => (
-                  <Card key={i} className="overflow-hidden p-6 bg-secondaryContainer">
-                    <feature.icon className="text-primary size-5" />
-                    <h3 className="text-foreground mt-2 text-lg font-semibold font-unbounded">
-                      {feature.label}
-                    </h3>
-                    <p className="text-muted-foreground mt-2 text-balance font-roboto">
-                      {feature.description}
-                    </p>
-                  </Card>
-                ))}
-              </div>
+
+          {/* About Section */}
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-medium">about me</h2>
+            <div className="text-sm font-medium text-balance space-y-4">
+              <p>
+                My name is <em>Oshomo Oforomeh</em>, a Staff Software Engineer with an MSc in Computer Science. Over the years, I’ve worked across backend, frontend, and full‑stack roles, delivering solutions in payments, e‑commerce, logistics, and travel.
+              </p>
+              <p>
+                I enjoy bridging the gap between engineering and product thinking. My focus is on building reliable systems, mentoring other engineers, and ensuring technology decisions align with delivering real value to people.
+              </p>
             </div>
           </div>
-        </section>
-        <Footer />
+
+          {/* Projects Section */}
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-medium">projects</h2>
+            <div className="flex flex-col gap-6 text-sm font-medium">
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href="/expense-wise"
+                className="no-underline flex flex-col gap-2"
+              >
+                <span className="underline">expense-Wise</span>
+                <p className="text-foreground text-[0.9rem]">
+                  A simple tool to manage expenses wisely and stay on top of your finances.
+                </p>
+              </a>
+
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href="/citizenship-test-app"
+                className="no-underline flex flex-col gap-2"
+              >
+                <span className="underline">citizenship test app</span>
+                <p className="text-foreground text-[0.9rem]">
+                  An app designed to help users prepare effectively for their citizenship test with practice questions and study guides.
+                </p>
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
+    </main>
   );
 }

@@ -1,5 +1,5 @@
 {
-  "name": "citizenship-test-website",
+  "name": "oshomo.oforomeh",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,11 +12,14 @@
     "format-prettier": "yarn prettier:fix"
   },
   "dependencies": {
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "embla-carousel-react": "^8.6.0",
     "lucide-react": "^0.536.0",
-    "next": "15.4.5",
+    "next": "^15.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tailwind-merge": "^3.3.1"
