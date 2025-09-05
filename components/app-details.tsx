@@ -52,7 +52,6 @@ export function AppDetails({ url, faqs, name, links, description, features, scre
               oshomo
             </Link>{' '}
             /{/* */}
-            <Link href="/">home</Link> /{/* */}
             <Link href={url}>{name}</Link>
           </div>
 
