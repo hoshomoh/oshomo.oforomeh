@@ -49,8 +49,8 @@ export default function AboutPage() {
               <p>
                 My name is <em>Oshomo Oforomeh</em>, a Staff Software Engineer with an MSc in
                 Computer Science. Over the years, I’ve worked across backend, frontend, and
-                full‑stack roles, delivering solutions in payments, e‑commerce, logistics, and
-                travel.
+                full‑stack roles, delivering solutions in payments, e‑commerce, logistics, travel,
+                taxes, accounting and marketing tech.
               </p>
               <p>
                 I enjoy bridging the gap between engineering and product thinking. My focus is on
