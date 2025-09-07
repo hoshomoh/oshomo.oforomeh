@@ -65,36 +65,36 @@ export default function ExpenseWisePage() {
 
   const screenshots = [
     {
-      src: '/images/expense-wise/1.png',
+      src: '/images/expense-wise/screenshots/1.png',
       alt: 'Get started with Expense-Wise',
     },
     {
-      src: '/images/expense-wise/2.png',
-      alt: 'Expense-Wise screen 2',
+      src: '/images/expense-wise/screenshots/2.png',
+      alt: 'View all your expenses across curated categories',
     },
     {
-      src: '/images/expense-wise/3.png',
-      alt: 'Expense-Wise screen 3',
+      src: '/images/expense-wise/screenshots/3.png',
+      alt: 'Add expenses, incomes, or transfers with just a few taps',
     },
     {
-      src: '/images/expense-wise/4.png',
-      alt: 'Get started with Expense-Wise',
+      src: '/images/expense-wise/screenshots/4.png',
+      alt: 'Manage all your accounts in one place',
     },
     {
-      src: '/images/expense-wise/5.png',
-      alt: 'Expense-Wise screen 2',
+      src: '/images/expense-wise/screenshots/5.png',
+      alt: 'See all transaction in a category',
     },
     {
-      src: '/images/expense-wise/6.png',
-      alt: 'Expense-Wise screen 3',
+      src: '/images/expense-wise/screenshots/6.png',
+      alt: 'Update your account settings and preferences',
     },
     {
-      src: '/images/expense-wise/7.png',
-      alt: 'Expense-Wise screen 2',
+      src: '/images/expense-wise/screenshots/7.png',
+      alt: 'Change to dark mode from account settings',
     },
     {
-      src: '/images/expense-wise/8.png',
-      alt: 'Expense-Wise screen 3',
+      src: '/images/expense-wise/screenshots/8.png',
+      alt: 'Change the app language from account settings',
     },
   ];
 

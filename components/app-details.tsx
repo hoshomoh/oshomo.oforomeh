@@ -96,7 +96,7 @@ export function AppDetails({ url, faqs, name, links, description, features, scre
           {Boolean(screenshots?.length) && (
             <div className="flex flex-col gap-2" id="screenshots">
               <h2 className="text-lg font-medium">screenshots</h2>
-              <Carousel className="w-full max-w-sm">
+              <Carousel className="w-full max-w-[320px]">
                 <CarouselContent>
                   {screenshots?.map(({ src, alt }) => (
                     <CarouselItem key={src}>
@@ -105,13 +105,13 @@ export function AppDetails({ url, faqs, name, links, description, features, scre
                         alt={alt}
                         width={320}
                         height={640}
-                        className="rounded-2xl border"
+                        className="rounded-2xl border h-auto w-auto max-w-full"
                       />
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
+                <CarouselPrevious className="left-2 z-10" />
+                <CarouselNext className="right-2 z-10" />
               </Carousel>
             </div>
           )}

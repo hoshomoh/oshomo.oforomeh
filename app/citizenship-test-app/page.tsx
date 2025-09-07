@@ -76,11 +76,55 @@ export default function ExpenseWisePage() {
     },
   ];
 
+  const screenshots = [
+    {
+      src: '/images/germany-citizenship-test/screenshots/1.png',
+      alt: 'Welcome to Citizenship Test App',
+    },
+    {
+      src: '/images/germany-citizenship-test/screenshots/2.png',
+      alt: 'Pick a test to practice from the home screen',
+    },
+    {
+      src: '/images/germany-citizenship-test/screenshots/3.png',
+      alt: 'See all your test results and progress in one place',
+    },
+    {
+      src: '/images/germany-citizenship-test/screenshots/4.png',
+      alt: 'Start other quizzes related to the test you are practicing',
+    },
+    {
+      src: '/images/germany-citizenship-test/screenshots/5.png',
+      alt: 'Question screen with options to choose from',
+    },
+    {
+      src: '/images/germany-citizenship-test/screenshots/6.png',
+      alt: 'Change question language directly from the question screen',
+    },
+    {
+      src: '/images/germany-citizenship-test/screenshots/7.png',
+      alt: 'See question in original language and translated language',
+    },
+    {
+      src: '/images/germany-citizenship-test/screenshots/8.png',
+      alt: 'See instant feedback after answering a question',
+    },
+    {
+      src: '/images/germany-citizenship-test/screenshots/9.png',
+      alt: 'See curated statistics after completing a quiz',
+    },
+    {
+      src: '/images/germany-citizenship-test/screenshots/10.png',
+      alt: 'Reset questions related to a statistic to practice them again',
+    },
+  ];
+
   return (
     <AppDetails
       url="/expense-wise"
-      name="citizenship-test-app"
       features={features}
+      screenshots={screenshots}
+      name="citizenship-test-app"
       description={`Taking the next step toward citizenship? Whether you’re preparing for the 
       German Einbürgerungstest or future tests in other countries, our app is designed to 
       help you succeed with confidence.`}
