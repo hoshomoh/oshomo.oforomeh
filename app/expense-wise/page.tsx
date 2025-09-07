@@ -65,36 +65,36 @@ export default function ExpenseWisePage() {
 
   const screenshots = [
     {
-      src: '/images/expense-wise/screenshots/1.png',
-      alt: 'Get started with Expense-Wise',
+      src: '/images/expense-wise/screenshots/1.png?v=1',
+      alt: 'Smart expense tracking and management made easy',
     },
     {
-      src: '/images/expense-wise/screenshots/2.png',
-      alt: 'View all your expenses across curated categories',
+      src: '/images/expense-wise/screenshots/2.png?v=1',
+      alt: 'Stay on top of your spending in real time',
     },
     {
-      src: '/images/expense-wise/screenshots/3.png',
-      alt: 'Add expenses, incomes, or transfers with just a few taps',
+      src: '/images/expense-wise/screenshots/3.png?v=1',
+      alt: 'Visualize where your money goes with insightful charts',
     },
     {
-      src: '/images/expense-wise/screenshots/4.png',
+      src: '/images/expense-wise/screenshots/4.png?v=1',
       alt: 'Manage all your accounts in one place',
     },
     {
-      src: '/images/expense-wise/screenshots/5.png',
-      alt: 'See all transaction in a category',
+      src: '/images/expense-wise/screenshots/5.png?v=1',
+      alt: 'Set budgets and take control of your finances',
     },
     {
-      src: '/images/expense-wise/screenshots/6.png',
-      alt: 'Update your account settings and preferences',
+      src: '/images/expense-wise/screenshots/6.png?v=1',
+      alt: 'Organize expenses into custom groups',
     },
     {
-      src: '/images/expense-wise/screenshots/7.png',
-      alt: 'Change to dark mode from account settings',
+      src: '/images/expense-wise/screenshots/7.png?v=1',
+      alt: 'Never miss a recurring expense with automated tracking',
     },
     {
-      src: '/images/expense-wise/screenshots/8.png',
-      alt: 'Change the app language from account settings',
+      src: '/images/expense-wise/screenshots/8.png?v=1',
+      alt: 'Personalize your app to met your needs',
     },
   ];
 
