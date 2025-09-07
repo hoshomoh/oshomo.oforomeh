@@ -18,6 +18,7 @@ import {
 
 import playStoreIcon from '../public/googleplay.svg';
 import appStoreIcon from '../public/appstore.svg';
+import Header from '@/components/header';
 
 type Props = {
   url: string;
@@ -46,14 +47,7 @@ export function AppDetails({ url, faqs, name, links, description, features, scre
     <main className="flex-1 flex flex-col">
       <div className="w-full flex-1 font-mono flex p-8">
         <div className="flex flex-col gap-12 w-[24rem] text-left">
-          {/* Top links */}
-          <div className="flex items-center gap-2 font-medium">
-            <Link className="flex items-center gap-2" href="/">
-              oshomo
-            </Link>{' '}
-            /{/* */}
-            <Link href={url}>{name}</Link>
-          </div>
+          <Header items={[{ label: name, href: url, external: false, current: true }]} />
 
           {/* App Name */}
           <div className="flex flex-col gap-2">

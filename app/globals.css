@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /*--color-background: var(--background);*/
+  --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -28,59 +28,32 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
-  /*--color-secondary: var(--secondary);*/
+  --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
-  /*--color-primary: var(--primary);*/
+  --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --color-primary: var(--primary);
-  --color-onPrimary: var(--onPrimary);
-  --color-primaryContainer: var(--primaryContainer);
-  --color-onPrimaryContainer: var(--onPrimaryContainer);
-  --color-secondary: var(--secondary);
-  --color-onSecondary: var(--onSecondary);
-  --color-secondaryContainer: var(--secondaryContainer);
-  --color-onSecondaryContainer: var(--onSecondaryContainer);
-  --color-tertiary: var(--tertiary);
-  --color-onTertiary: var(--onTertiary);
-  --color-tertiaryContainer: var(--tertiaryContainer);
-  --color-onTertiaryContainer: var(--onTertiaryContainer);
-  --color-error: var(--error);
-  --color-onError: var(--onError);
-  --color-errorContainer: var(--errorContainer);
-  --color-onErrorContainer: var(--onErrorContainer);
-  --color-background: var(--background);
-  --color-onBackground: var(--onBackground);
-  --color-surface: var(--surface);
-  --color-onSurface: var(--onSurface);
-  --color-surfaceVariant: var(--surfaceVariant);
-  --color-onSurfaceVariant: var(--onSurfaceVariant);
-  --color-outline: var(--outline);
-  --color-outlineVariant: var(--outlineVariant);
-  --color-shadow: var(--shadow);
-  --color-scrim: var(--scrim);
-  --color-inverseSurface: var(--inverseSurface);
-  --color-inverseOnSurface: var(--inverseOnSurface);
-  --color-inversePrimary: var(--inversePrimary);
   --color-radius-sm: calc(var(--radius) - 4px);
   --color-radius-md: calc(var(--radius) - 2px);
   --color-radius-lg: var(--radius);
   --color-radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
 :root {
   --radius: 0.625rem;
-  /*--background: oklch(1 0 0);*/
+  --background: oklch(1 0 0);
   --foreground: oklch(0.147 0.004 49.25);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.147 0.004 49.25);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.147 0.004 49.25);
-  /*--primary: oklch(0.216 0.006 56.043);*/
+  --primary: oklch(0.216 0.006 56.043);
   --primary-foreground: oklch(0.985 0.001 106.423);
-  /*--secondary: oklch(0.97 0.001 106.424);*/
+  --secondary: oklch(0.97 0.001 106.424);
   --secondary-foreground: oklch(0.216 0.006 56.043);
   --muted: oklch(0.97 0.001 106.424);
   --muted-foreground: oklch(0.553 0.013 58.071);
@@ -103,47 +76,18 @@
   --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
   --sidebar-border: oklch(0.923 0.003 48.717);
   --sidebar-ring: oklch(0.709 0.01 56.259);
-  --primary: #526526;
-  --onPrimary: #ffffff;
-  --primaryContainer: #d4ec9d;
-  --onPrimaryContainer: #3b4d10;
-  --secondary: #5a6147;
-  --onSecondary: #ffffff;
-  --secondaryContainer: #dee6c5;
-  --onSecondaryContainer: #424a31;
-  --tertiary: #396660;
-  --onTertiary: #ffffff;
-  --tertiaryContainer: #bcece4;
-  --onTertiaryContainer: #204e48;
-  --error: #ba1a1a;
-  --onError: #ffffff;
-  --errorContainer: #ffdad6;
-  --onErrorContainer: #93000a;
-  --background: #fafaee;
-  --onBackground: #1a1c15;
-  --surface: #fafaee;
-  --onSurface: #1a1c15;
-  --surfaceVariant: #e2e4d4;
-  --onSurfaceVariant: #45483c;
-  --outline: #76786b;
-  --outlineVariant: #c6c8b8;
-  --shadow: #000000;
-  --scrim: #000000;
-  --inverseSurface: #2f3129;
-  --inverseOnSurface: #f1f1e5;
-  --inversePrimary: #b8cf84;
 }
 
 .dark {
-  /*--background: oklch(0.147 0.004 49.25);*/
+  --background: oklch(0.147 0.004 49.25);
   --foreground: oklch(0.985 0.001 106.423);
   --card: oklch(0.216 0.006 56.043);
   --card-foreground: oklch(0.985 0.001 106.423);
   --popover: oklch(0.216 0.006 56.043);
   --popover-foreground: oklch(0.985 0.001 106.423);
-  /*--primary: oklch(0.923 0.003 48.717);*/
+  --primary: oklch(0.923 0.003 48.717);
   --primary-foreground: oklch(0.216 0.006 56.043);
-  /*--secondary: oklch(0.268 0.007 34.298);*/
+  --secondary: oklch(0.268 0.007 34.298);
   --secondary-foreground: oklch(0.985 0.001 106.423);
   --muted: oklch(0.268 0.007 34.298);
   --muted-foreground: oklch(0.709 0.01 56.259);
@@ -166,35 +110,6 @@
   --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.553 0.013 58.071);
-  --primary: #b8cf84;
-  --onPrimary: #263500;
-  --primaryContainer: #3b4d10;
-  --onPrimaryContainer: #d4ec9d;
-  --secondary: #c2caaa;
-  --onSecondary: #2c331c;
-  --secondaryContainer: #424a31;
-  --onSecondaryContainer: #dee6c5;
-  --tertiary: #a1d0c8;
-  --onTertiary: #023732;
-  --tertiaryContainer: #204e48;
-  --onTertiaryContainer: #bcece4;
-  --error: #ffb4ab;
-  --onError: #690005;
-  --errorContainer: #93000a;
-  --onErrorContainer: #ffdad6;
-  --background: #12140d;
-  --onBackground: #e3e3d7;
-  --surface: #12140d;
-  --onSurface: #e3e3d7;
-  --surfaceVariant: #45483c;
-  --onSurfaceVariant: #c6c8b8;
-  --outline: #909284;
-  --outlineVariant: #45483c;
-  --shadow: #000000;
-  --scrim: #000000;
-  --inverseSurface: #e3e3d7;
-  --inverseOnSurface: #2f3129;
-  --inversePrimary: #526526;
 }
 
 @layer base {

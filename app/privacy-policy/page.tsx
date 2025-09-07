@@ -1,6 +1,6 @@
 import React from 'react';
-import Link from 'next/link';
 import { Metadata } from 'next';
+import Header from '@/components/header';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Oshomo Oforomeh',
@@ -26,15 +26,8 @@ export default function PrivacyPolicyPage() {
   return (
     <main className="flex-1 flex flex-col">
       <div className="w-full flex-1 font-mono flex p-8">
-        <div className="flex flex-col gap-12 w-[36rem] text-left">
-          {/* Top links */}
-          <div className="flex items-center gap-2 font-medium">
-            <Link className="flex items-center gap-2" href="/">
-              oshomo
-            </Link>{' '}
-            /{/* */}
-            <Link href="/privacy-policy">privacy policy</Link>
-          </div>
+        <div className="flex flex-col gap-12 w-[24rem] text-left">
+          <Header items={[{ label: 'privacy policy', href: '/privacy-policy', current: true }]} />
 
           {/* Page Title */}
           <div className="flex flex-col gap-2">
@@ -80,7 +73,7 @@ export default function PrivacyPolicyPage() {
 
             <div>
               <h2 className="font-semibold mb-2">2. How We Use Your Information</h2>
-              <p>
+              <p className="text-sm font-medium">
                 We use your information to provide, improve, and secure our apps, personalize your
                 experience, respond to support, and send updates (if opted in). We do not sell your
                 data.
@@ -89,7 +82,7 @@ export default function PrivacyPolicyPage() {
 
             <div>
               <h2 className="font-semibold mb-2">3. Data Storage & Security</h2>
-              <p>
+              <p className="text-sm font-medium">
                 Your data may be stored locally or securely in the cloud. We apply reasonable
                 measures to protect it, but you are responsible for securing your credentials.
               </p>

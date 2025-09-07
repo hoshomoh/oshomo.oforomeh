@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
+import Header from '@/components/header';
 
 export const metadata: Metadata = {
   title: 'About | Oshomo Oforomeh',
@@ -27,20 +28,12 @@ export default function AboutPage() {
     <main className="flex-1 flex flex-col">
       <div className="w-full flex-1 font-mono flex p-8">
         <div className="flex flex-col gap-12 w-[24rem] text-left">
-          {/* Top links */}
-          <div className="flex items-center gap-2 font-medium">
-            <Link className="flex items-center gap-2" href="/">
-              oshomo
-            </Link>{' '}
-            /{/* */}
-            <Link href="https://linkedin.com/in/hoshomoh/" target="_blank" rel="noreferrer">
-              linkedin
-            </Link>{' '}
-            /{/* */}
-            <Link href="https://github.com/hoshomoh" target="_blank" rel="noreferrer">
-              github
-            </Link>
-          </div>
+          <Header
+            items={[
+              { label: 'linkedin', href: 'https://linkedin.com/in/hoshomoh/', external: true },
+              { label: 'github', href: 'https://github.com/hoshomoh', external: true },
+            ]}
+          />
 
           {/* About Section */}
           <div className="flex flex-col gap-2">
@@ -64,30 +57,20 @@ export default function AboutPage() {
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-medium">projects</h2>
             <div className="flex flex-col gap-6 text-sm font-medium">
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href="/expense-wise"
-                className="no-underline flex flex-col gap-2"
-              >
-                <span className="underline">expense-Wise</span>
+              <Link href="/expense-wise" className="no-underline flex flex-col gap-2">
+                <span className="underline text-[0.9rem]">expense wise</span>
                 <p className="text-foreground text-[0.9rem]">
                   A simple tool to manage expenses wisely and stay on top of your finances.
                 </p>
-              </a>
+              </Link>
 
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href="/citizenship-test-app"
-                className="no-underline flex flex-col gap-2"
-              >
-                <span className="underline">citizenship test app</span>
+              <Link href="/citizenship-test-app" className="no-underline flex flex-col gap-2">
+                <span className="underline text-[0.9rem]">citizenship test app</span>
                 <p className="text-foreground text-[0.9rem]">
                   An app designed to help users prepare effectively for their citizenship test with
                   practice questions and study guides.
                 </p>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
