@@ -22,6 +22,9 @@ export const metadata: Metadata = {
     description:
       'Track and manage your personal finances with Expense-Wise. Budgets, categories, insights, and dark mode included.',
   },
+  other: {
+    'apple-itunes-app': 'app-id=6456948272',
+  },
 };
 
 export default function ExpenseWisePage() {

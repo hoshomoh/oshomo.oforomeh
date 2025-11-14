@@ -33,6 +33,9 @@ export const metadata: Metadata = {
   icons: {
     icon: '/icons/citizenship-test-app.favicon.ico',
   },
+  other: {
+    'apple-itunes-app': 'app-id=6749445598',
+  },
 };
 
 export default function ExpenseWisePage() {
