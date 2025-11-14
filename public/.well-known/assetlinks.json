@@ -1,0 +1,32 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.expensewise.beta",
+      "sha256_cert_fingerprints":
+      ["FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C"]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.expensewise",
+      "sha256_cert_fingerprints": [
+        "C2:E2:74:82:7B:D2:9E:4D:33:CA:48:69:10:EB:C0:EC:D8:10:27:5A:BB:CC:F9:EC:F1:14:6C:E6:F0:4B:53:0D"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.citizenshiptestapp",
+      "sha256_cert_fingerprints": [
+        "FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C",
+        "B5:72:AA:62:5E:C9:74:54:9D:41:89:E8:23:0C:A3:C7:8B:62:0E:B4:CB:C3:57:B2:82:DA:46:EB:9F:D7:E4:C4"
+      ]
+    }
+  }
+]

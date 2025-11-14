@@ -1,0 +1,21 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+       "appIDs": ["7GB3DB74GX.com.expensewise", "7GB3DB74GX.com.expensewise.beta"],
+        "paths": [
+          "NOT /_/*",
+          "/expense-wise/*"
+        ]
+      },
+       {
+         "appIDs": ["7GB3DB74GX.com.citizenshiptestapp"],
+          "paths": [
+            "NOT /_/*",
+            "/citizenship-test-app/*"
+          ]
+        }
+    ]
+  }
+}
