@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: 'About | Oshomo Oforomeh',
     description:
       'Staff Software Engineer with MSc in Computer Science, bridging engineering and product thinking.',
-    url: 'https://oshomo.oforomeh.com/about',
+    url: 'https://oshomo.oforomeh.com',
     siteName: 'Oshomo Oforomeh',
     type: 'profile',
   },
@@ -69,6 +69,19 @@ export default function AboutPage() {
                 <p className="text-foreground text-[0.9rem]">
                   An app designed to help users prepare effectively for their citizenship test with
                   practice questions and study guides.
+                </p>
+              </Link>
+
+              <Link
+                href="https://tripzapp.com"
+                target="_blank"
+                className="no-underline flex flex-col gap-2"
+              >
+                <span className="underline text-[0.9rem]">TripZapp</span>
+                <p className="text-foreground text-[0.9rem]">
+                  Discover unique things to do in Africa, from safaris to cultural tours, all hosted
+                  by local experts on TripZapp, the trusted way to book authentic African
+                  experiences.
                 </p>
               </Link>
             </div>
