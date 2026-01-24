@@ -1,6 +1,9 @@
 import React from 'react';
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Header from '@/components/header';
+import type { WithContext, Article } from 'schema-dts';
+
+import { CONTACT_EMAIL, PRIVACY_POLICY_URL, PUBLIC_URL } from '@/lib/constant';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Oshomo Oforomeh',
@@ -10,7 +13,7 @@ export const metadata: Metadata = {
     title: 'Privacy Policy | Oshomo Oforomeh',
     description:
       'Covers data usage, collection, and security for Expense-Wise, Citizenship Test App, and other apps.',
-    url: 'https://oshomo.oforomeh.com/privacy',
+    url: PRIVACY_POLICY_URL,
     siteName: 'Oshomo Oforomeh',
     type: 'article',
   },
@@ -20,6 +23,52 @@ export const metadata: Metadata = {
     description:
       'Covers data usage, collection, and security for Expense-Wise, Citizenship Test App, and other apps.',
   },
+};
+
+const jsonLd: WithContext<Article> = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  '@id': `${PRIVACY_POLICY_URL}#article`,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': `${PRIVACY_POLICY_URL}#webpage`,
+  },
+  headline: 'Privacy Policy',
+  name: 'Privacy Policy | Oshomo Oforomeh',
+  description:
+    'Privacy Policy for all apps by Oshomo Oforomeh, including Expense-Wise and Citizenship Test App. Learn how your data is collected, used, and protected.',
+  url: PRIVACY_POLICY_URL,
+  inLanguage: 'en',
+  dateModified: '2025-09-05',
+  datePublished: '2025-09-05',
+  author: {
+    '@type': 'Person',
+    '@id': `${PUBLIC_URL}/#person`,
+    name: 'Oshomo Oforomeh',
+    url: PUBLIC_URL,
+  },
+  publisher: {
+    '@type': 'Organization',
+    '@id': `${PUBLIC_URL}/#organization`,
+    name: 'Oshomo Oforomeh',
+    url: PUBLIC_URL,
+  },
+  isPartOf: {
+    '@type': 'WebSite',
+    '@id': `${PUBLIC_URL}/#website`,
+    name: 'Oshomo Oforomeh',
+    url: PUBLIC_URL,
+  },
+  about: [
+    {
+      '@type': 'Thing',
+      name: 'Privacy Policy',
+    },
+    {
+      '@type': 'Thing',
+      name: 'Data protection',
+    },
+  ],
 };
 
 export default function PrivacyPolicyPage() {
@@ -92,8 +141,8 @@ export default function PrivacyPolicyPage() {
               <h2 className="font-semibold mb-2">4. Data Deletion</h2>
               <p className="text-sm font-medium">
                 You can delete your data and account anytime via in-app settings or by emailing{' '}
-                <a href="mailto:hello@oshomo.oforomeh.com" className="underline">
-                  hello@oshomo.oforomeh.com
+                <a href={`mailto:${CONTACT_EMAIL}`} className="underline">
+                  {CONTACT_EMAIL}
                 </a>
                 .
               </p>
@@ -144,14 +193,18 @@ export default function PrivacyPolicyPage() {
               <p className="text-sm font-medium">
                 Oshomo Oforomeh <br />
                 Email:{' '}
-                <a href="mailto:hello@oshomo.oforomeh.com" className="underline">
-                  hello@oshomo.oforomeh.com
+                <a href={`mailto:${CONTACT_EMAIL}`} className="underline">
+                  {CONTACT_EMAIL}
                 </a>
               </p>
             </div>
           </div>
         </div>
       </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     </main>
   );
 }

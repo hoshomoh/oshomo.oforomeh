@@ -42,6 +42,7 @@ type Props = {
     playStore: string;
   };
 };
+
 export function AppDetails({ url, faqs, name, links, description, features, screenshots }: Props) {
   return (
     <main className="flex-1 flex flex-col">
