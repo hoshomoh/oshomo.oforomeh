@@ -59,11 +59,12 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     buildIndex();
   }, [buildIndex]);
 
-  return (
-    <SearchContext.Provider value={{ searchIndex, isIndexReady, rebuildIndex }}>
-      {children}
-    </SearchContext.Provider>
+  const value = React.useMemo(
+    () => ({ searchIndex, isIndexReady, rebuildIndex }),
+    [searchIndex, isIndexReady, rebuildIndex],
   );
+
+  return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;
 }
 
 export function useSearch() {

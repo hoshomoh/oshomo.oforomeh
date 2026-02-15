@@ -7,6 +7,7 @@ import Header from '@/components/header';
 import {
   CITIZENSHIP_TEST_APP_URL,
   EXPENSE_WISE_URL,
+  EXPENSE_WISE_WEB_URL,
   PUBLIC_URL,
   TRIPZAPP_URL,
 } from '@/lib/constant';
@@ -27,6 +28,14 @@ const apps: Record<
     relative: '/expense-wise',
     blank: false,
     description: 'A simple tool to manage expenses wisely and stay on top of your finances.',
+  },
+  expenseWiseWeb: {
+    name: 'Expense Wise Web',
+    url: EXPENSE_WISE_WEB_URL,
+    relative: '/expense-wise-web',
+    blank: false,
+    description:
+      'A web dashboard for visualizing your Expense Wise data with interactive charts, budgets, and AI-powered financial insights.',
   },
   citizenshipTestApp: {
     name: 'Citizenship Test App',
@@ -121,6 +130,15 @@ const jsonLd: WithContext<AboutPageSchema> = {
         applicationCategory: 'FinanceApplication',
         operatingSystem: ['iOS', 'Android'],
         description: apps.expenseWise.description,
+      },
+      {
+        '@type': 'WebApplication',
+        '@id': `${apps.expenseWiseWeb.url}#project`,
+        name: apps.expenseWiseWeb.name,
+        url: apps.expenseWiseWeb.url,
+        applicationCategory: 'FinanceApplication',
+        operatingSystem: 'Any',
+        description: apps.expenseWiseWeb.description,
       },
       {
         '@type': 'SoftwareApplication',

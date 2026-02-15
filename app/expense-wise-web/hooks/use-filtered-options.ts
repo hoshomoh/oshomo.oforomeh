@@ -1,10 +1,5 @@
 import * as React from 'react';
-import type {
-  DashboardFilters,
-  ParsedAccount,
-  ParsedGroup,
-  ParsedTransaction,
-} from '../lib/types';
+import type { DashboardFilters, ParsedAccount, ParsedGroup, ParsedTransaction } from '../lib/types';
 
 export function useFilteredOptions({
   filters,

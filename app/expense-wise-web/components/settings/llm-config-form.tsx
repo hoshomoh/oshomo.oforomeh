@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Eye, EyeOff, CheckCircle, Loader2, RefreshCw } from 'lucide-react';
 import { PROVIDER_META } from '../../lib/constants';
 import type { LLMConfig, LLMProvider } from '../../lib/types';
+import { formatSize } from '../../lib/format';
 import { useLLMConfigForm } from '../../hooks/use-llm-config-form';
 
 type LLMConfigFormProps = {
@@ -40,11 +41,6 @@ export function LLMConfigForm({ config, onSave }: LLMConfigFormProps) {
     handleSave,
     fetchOllamaModels,
   } = useLLMConfigForm({ config, onSave });
-
-  const formatSize = (bytes: number) => {
-    const gb = bytes / (1024 * 1024 * 1024);
-    return gb >= 1 ? `${gb.toFixed(1)} GB` : `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
-  };
 
   return (
     <Card className="h-full">

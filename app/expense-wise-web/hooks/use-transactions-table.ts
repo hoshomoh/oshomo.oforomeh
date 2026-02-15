@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { compareAsc } from 'date-fns';
 import type { ParsedTransaction, ParsedAccount } from '../lib/types';
 
 export type SortColumn = 'date' | 'description' | 'category' | 'amount' | 'account' | 'type';
@@ -16,54 +17,32 @@ type TableState = {
 type TableAction =
   | { type: 'SORT'; column: SortColumn }
   | { type: 'SET_PAGE'; page: number }
-  | { type: 'SET_PAGE_SIZE'; size: number }
-  | { type: 'NEXT_PAGE' }
-  | { type: 'PREV_PAGE' };
+  | { type: 'SET_PAGE_SIZE'; size: number };
 
-function getAccountName(accountId: string, accounts?: ParsedAccount[]): string {
-  if (!accounts) {
-    return accountId;
-  }
-  const account = accounts.find((a) => a.id === accountId);
-  return account?.name ?? accountId;
-}
-
-function createTableReducer(totalPagesRef: { current: number }) {
-  return function tableReducer(state: TableState, action: TableAction): TableState {
-    switch (action.type) {
-      case 'SORT': {
-        if (state.sortColumn === action.column) {
-          return {
-            ...state,
-            sortDirection: state.sortDirection === 'asc' ? 'desc' : 'asc',
-            currentPage: 0,
-          };
-        }
+function tableReducer(state: TableState, action: TableAction): TableState {
+  switch (action.type) {
+    case 'SORT': {
+      if (state.sortColumn === action.column) {
         return {
           ...state,
-          sortColumn: action.column,
-          sortDirection: 'asc',
+          sortDirection: state.sortDirection === 'asc' ? 'desc' : 'asc',
           currentPage: 0,
         };
       }
-      case 'SET_PAGE':
-        return { ...state, currentPage: action.page };
-      case 'SET_PAGE_SIZE':
-        return { ...state, currentPageSize: action.size, currentPage: 0 };
-      case 'NEXT_PAGE':
-        return {
-          ...state,
-          currentPage: Math.min(totalPagesRef.current - 1, state.currentPage + 1),
-        };
-      case 'PREV_PAGE':
-        return {
-          ...state,
-          currentPage: Math.max(0, state.currentPage - 1),
-        };
-      default:
-        return state;
+      return {
+        ...state,
+        sortColumn: action.column,
+        sortDirection: 'asc',
+        currentPage: 0,
+      };
     }
-  };
+    case 'SET_PAGE':
+      return { ...state, currentPage: action.page };
+    case 'SET_PAGE_SIZE':
+      return { ...state, currentPageSize: action.size, currentPage: 0 };
+    default:
+      return state;
+  }
 }
 
 type UseTransactionsTableParams = {
@@ -79,11 +58,7 @@ export function useTransactionsTable({
   pageSize = 10,
   showViewAll = false,
 }: UseTransactionsTableParams) {
-  const totalPagesRef = React.useRef(1);
-
-  const reducer = React.useMemo(() => createTableReducer(totalPagesRef), []);
-
-  const [state, dispatch] = React.useReducer(reducer, {
+  const [state, dispatch] = React.useReducer(tableReducer, {
     sortColumn: 'date' as SortColumn,
     sortDirection: 'desc' as SortDirection,
     currentPage: 0,
@@ -94,13 +69,19 @@ export function useTransactionsTable({
     dispatch({ type: 'SORT', column });
   }, []);
 
+  // O(1) account name lookup map — built once, used in sorting and rendering
+  const accountNameMap = React.useMemo(
+    () => new Map(accounts?.map((a) => [a.id, a.name]) ?? []),
+    [accounts],
+  );
+
   const sortedTransactions = React.useMemo(() => {
     const sorted = [...transactions].sort((a, b) => {
       let comparison = 0;
 
       switch (state.sortColumn) {
         case 'date':
-          comparison = a.date.getTime() - b.date.getTime();
+          comparison = compareAsc(a.date, b.date);
           break;
         case 'description':
           comparison = a.description.localeCompare(b.description);
@@ -111,11 +92,12 @@ export function useTransactionsTable({
         case 'amount':
           comparison = a.amount - b.amount;
           break;
-        case 'account':
-          comparison = getAccountName(a.accountId, accounts).localeCompare(
-            getAccountName(b.accountId, accounts),
-          );
+        case 'account': {
+          const nameA = accountNameMap.get(a.accountId) ?? a.accountId;
+          const nameB = accountNameMap.get(b.accountId) ?? b.accountId;
+          comparison = nameA.localeCompare(nameB);
           break;
+        }
         case 'type':
           comparison = a.type.localeCompare(b.type);
           break;
@@ -125,13 +107,15 @@ export function useTransactionsTable({
     });
 
     return sorted;
-  }, [transactions, state.sortColumn, state.sortDirection, accounts]);
+  }, [transactions, state.sortColumn, state.sortDirection, accountNameMap]);
 
   const effectivePageSize = showViewAll ? pageSize : state.currentPageSize;
   const totalPages = Math.max(1, Math.ceil(sortedTransactions.length / effectivePageSize));
-  totalPagesRef.current = totalPages;
 
-  const startIndex = state.currentPage * effectivePageSize;
+  // Clamp currentPage to valid range (may be out of bounds after data changes)
+  const currentPage = Math.min(state.currentPage, totalPages - 1);
+
+  const startIndex = currentPage * effectivePageSize;
   const endIndex = Math.min(startIndex + effectivePageSize, sortedTransactions.length);
   const paginatedTransactions = sortedTransactions.slice(startIndex, endIndex);
 
@@ -144,19 +128,20 @@ export function useTransactionsTable({
   }, []);
 
   const nextPage = React.useCallback(() => {
-    dispatch({ type: 'NEXT_PAGE' });
-  }, []);
+    dispatch({ type: 'SET_PAGE', page: currentPage + 1 });
+  }, [currentPage]);
 
   const prevPage = React.useCallback(() => {
-    dispatch({ type: 'PREV_PAGE' });
-  }, []);
+    dispatch({ type: 'SET_PAGE', page: currentPage - 1 });
+  }, [currentPage]);
 
   return {
     sortColumn: state.sortColumn,
     sortDirection: state.sortDirection,
-    currentPage: state.currentPage,
+    currentPage,
     currentPageSize: state.currentPageSize,
     handleSort,
+    accountNameMap,
     sortedTransactions,
     paginatedTransactions,
     effectivePageSize,

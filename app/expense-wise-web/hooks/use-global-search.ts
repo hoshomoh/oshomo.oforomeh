@@ -7,7 +7,8 @@ import { useSearch } from '../context/search-context';
 import { useData } from '../context/data-context';
 import { searchTransactions } from '../lib/search-engine';
 import type { TransactionSearchDoc } from '../lib/search-engine';
-import type { ParsedAccount, ParsedGroup } from '../lib/types';
+import type { ParsedAccount, ParsedGroup, DashboardFilters } from '../lib/types';
+import { useTransactionFilters } from '../context/transaction-filter-context';
 
 export function useGlobalSearch() {
   const [open, setOpen] = React.useState(false);
@@ -15,6 +16,7 @@ export function useGlobalSearch() {
   const { searchIndex, isIndexReady } = useSearch();
   const { accounts, groups, hasData } = useData();
   const router = useRouter();
+  const { navigateToTransactions } = useTransactionFilters();
 
   // Cmd+K / Ctrl+K shortcut
   React.useEffect(() => {
@@ -73,6 +75,15 @@ export function useGlobalSearch() {
     [router],
   );
 
+  const handleTransactionNav = React.useCallback(
+    (opts: { search?: string; filters?: Partial<DashboardFilters> }) => {
+      setOpen(false);
+      setQuery('');
+      navigateToTransactions(opts);
+    },
+    [navigateToTransactions],
+  );
+
   const handleOpenChange = React.useCallback((value: boolean) => {
     setOpen(value);
     if (!value) {
@@ -90,6 +101,7 @@ export function useGlobalSearch() {
     hasAnyResults,
     hasData,
     handleSelect,
+    handleTransactionNav,
     handleOpenChange,
   };
 }

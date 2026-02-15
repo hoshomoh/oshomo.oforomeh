@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { compareDesc } from 'date-fns';
 import { useDashboardStats } from './use-dashboard-stats';
 import { sortMonthKeys, formatMonthKey } from '../lib/format';
 import type { ParsedTransaction, ParsedAccount, ParsedBudget } from '../lib/types';
@@ -47,7 +48,7 @@ export function useAccountDetail(
   }, [account]);
 
   const recentTransactions = React.useMemo(
-    () => [...accountTransactions].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 10),
+    () => [...accountTransactions].sort((a, b) => compareDesc(a.date, b.date)).slice(0, 10),
     [accountTransactions],
   );
 

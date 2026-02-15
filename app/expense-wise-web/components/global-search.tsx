@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { ArrowLeftRight, Search, Wallet, LayoutDashboard, PieChart, Users } from 'lucide-react';
 import {
   Command,
@@ -32,8 +33,19 @@ export function GlobalSearch() {
     hasAnyResults,
     hasData,
     handleSelect,
+    handleTransactionNav,
     handleOpenChange,
   } = useGlobalSearch();
+
+  const listRef = React.useRef<HTMLDivElement>(null);
+
+  const handleQueryChange = React.useCallback(
+    (value: string) => {
+      setQuery(value);
+      listRef.current?.scrollTo(0, 0);
+    },
+    [setQuery],
+  );
 
   if (!hasData) {
     return null;
@@ -53,9 +65,9 @@ export function GlobalSearch() {
           <CommandInput
             placeholder="Search transactions, accounts, groups..."
             value={query}
-            onValueChange={setQuery}
+            onValueChange={handleQueryChange}
           />
-          <CommandList>
+          <CommandList ref={listRef}>
             {query.trim() && !hasAnyResults && <CommandEmpty>No results found.</CommandEmpty>}
 
             {/* Search action */}
@@ -63,11 +75,7 @@ export function GlobalSearch() {
               <CommandGroup heading="Search">
                 <CommandItem
                   value={`search-${query}`}
-                  onSelect={() =>
-                    handleSelect(
-                      `/expense-wise-web/transactions?search=${encodeURIComponent(query)}`,
-                    )
-                  }
+                  onSelect={() => handleTransactionNav({ search: query })}
                 >
                   <Search className="size-4 shrink-0" />
                   <span>Search for &ldquo;{query}&rdquo;</span>
@@ -87,9 +95,9 @@ export function GlobalSearch() {
                       key={doc.id}
                       value={`tx-${doc.description} ${doc.categoryLabel} ${doc.accountName}`}
                       onSelect={() =>
-                        handleSelect(
-                          `/expense-wise-web/transactions?search=${encodeURIComponent(doc.description || doc.categoryLabel)}`,
-                        )
+                        handleTransactionNav({
+                          search: doc.description || doc.categoryLabel,
+                        })
                       }
                     >
                       <Icon className="size-4 shrink-0" style={{ color: meta.color }} />
@@ -144,11 +152,7 @@ export function GlobalSearch() {
                   <CommandItem
                     key={group.id}
                     value={`grp-${group.name} ${group.type}`}
-                    onSelect={() =>
-                      handleSelect(
-                        `/expense-wise-web/transactions?groupId=${encodeURIComponent(group.id)}`,
-                      )
-                    }
+                    onSelect={() => handleTransactionNav({ filters: { groupId: group.id } })}
                   >
                     <Users className="size-4 shrink-0" />
                     <div className="min-w-0">

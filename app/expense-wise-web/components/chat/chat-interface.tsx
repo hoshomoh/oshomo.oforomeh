@@ -4,7 +4,6 @@ import * as React from 'react';
 import { Send, Trash2, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChatMessage } from './chat-message';
 import { cn } from '@/lib/utils';
@@ -55,29 +54,49 @@ export function ChatInterface({ llmConfig, dataSummary, className }: ChatInterfa
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <div className="flex-1 overflow-auto p-4" ref={scrollRef}>
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             <p className="text-sm">Ask a question about your financial data...</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {messages.map((message) => (
-              <ChatMessage
-                key={message.id}
-                role={message.role as 'user' | 'assistant'}
-                parts={message.parts}
-              />
-            ))}
-            {isLoading && messages[messages.length - 1]?.role === 'user' && (
+            {messages
+              .filter((msg, i) => {
+                // Skip intermediate assistant messages that precede another
+                // assistant message — these are pre-tool-call text that gets
+                // repeated in the final response after sendAutomaticallyWhen
+                // triggers a follow-up request.
+                if (msg.role !== 'assistant') {
+                  return true;
+                }
+                const next = messages[i + 1];
+                return !next || next.role !== 'assistant';
+              })
+              .map((message) => (
+                <ChatMessage
+                  key={message.id}
+                  role={message.role as 'user' | 'assistant'}
+                  parts={message.parts}
+                />
+              ))}
+            {isLoading && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm">Thinking...</span>
+                <span className="text-sm">
+                  {(() => {
+                    const last = [...messages].reverse().find((m) => m.role === 'assistant');
+                    const hasContent = last?.parts.some(
+                      (p) => p.type === 'text' || p.type.startsWith('data-'),
+                    );
+                    return hasContent ? 'Generating...' : 'Thinking...';
+                  })()}
+                </span>
               </div>
             )}
           </div>
         )}
-      </ScrollArea>
+      </div>
 
       {/* Error */}
       {error && (

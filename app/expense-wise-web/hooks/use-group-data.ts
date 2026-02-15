@@ -1,8 +1,9 @@
 import * as React from 'react';
+import { compareDesc } from 'date-fns';
 import { TransactionType } from '../lib/types';
 import type { ParsedGroup, ParsedTransaction, Currency } from '../lib/types';
 
-export type GroupDataItem = {
+type GroupDataItem = {
   group: ParsedGroup;
   transactions: ParsedTransaction[];
   totalExpenses: number;
@@ -22,7 +23,7 @@ export function useGroupData(
     return sortedGroups.map((group) => {
       const groupTransactions = transactions
         .filter((tx) => tx.groupId === group.id)
-        .sort((a, b) => b.date.getTime() - a.date.getTime());
+        .sort((a, b) => compareDesc(a.date, b.date));
       const totalExpenses = groupTransactions
         .filter((tx) => tx.type === TransactionType.EXPENSE)
         .reduce((sum, tx) => sum + tx.amount, 0);

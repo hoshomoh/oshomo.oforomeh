@@ -2,16 +2,12 @@
 
 import * as React from 'react';
 import { PieChart, Pie, Cell } from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { getCategoryMeta } from '@/app/expense-wise-web/lib/constants';
 import { formatCurrency } from '@/app/expense-wise-web/lib/format';
+import { useCategoryChartConfig } from '@/app/expense-wise-web/hooks/use-category-chart-config';
 
 type CategoryPieChartData = {
   categoryId: string;
@@ -24,18 +20,20 @@ type CategoryPieChartProps = {
   className?: string;
 };
 
-export function CategoryPieChart({ data, className }: CategoryPieChartProps) {
-  const chartConfig = React.useMemo<ChartConfig>(() => {
-    const config: ChartConfig = {};
-    for (const item of data) {
-      const meta = getCategoryMeta(item.categoryId);
-      config[item.categoryId] = {
-        label: meta.label,
-        color: meta.color,
-      };
-    }
-    return config;
-  }, [data]);
+export const CategoryPieChart = React.memo(function CategoryPieChart({
+  data,
+  className,
+}: CategoryPieChartProps) {
+  const { categoryMetaMap, chartConfig } = useCategoryChartConfig(data);
+
+  const chartData = React.useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        fill: categoryMetaMap.get(item.categoryId)!.color,
+      })),
+    [data, categoryMetaMap],
+  );
 
   if (!data.length) {
     return (
@@ -51,11 +49,6 @@ export function CategoryPieChart({ data, className }: CategoryPieChartProps) {
       </Card>
     );
   }
-
-  const chartData = data.map((item) => ({
-    ...item,
-    fill: getCategoryMeta(item.categoryId).color,
-  }));
 
   return (
     <Card className={cn(className)}>
@@ -106,7 +99,7 @@ export function CategoryPieChart({ data, className }: CategoryPieChartProps) {
         </ChartContainer>
         <div className="flex flex-wrap gap-x-4 gap-y-1.5 px-2 pt-2">
           {chartData.map((item) => {
-            const meta = getCategoryMeta(item.categoryId);
+            const meta = categoryMetaMap.get(item.categoryId)!;
             return (
               <div key={item.categoryId} className="flex items-center gap-1.5 text-xs">
                 <div
@@ -122,4 +115,4 @@ export function CategoryPieChart({ data, className }: CategoryPieChartProps) {
       </CardContent>
     </Card>
   );
-}
+});

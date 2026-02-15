@@ -11,7 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatCurrency, formatDate } from '../lib/format';
+import { formatCurrency, formatDate, getAccountName } from '../lib/format';
 import { getCategoryMeta } from '../lib/constants';
 import { useGroupData } from '../hooks/use-group-data';
 import { TransactionType, GroupType } from '../lib/types';
@@ -44,14 +44,6 @@ const GROUP_TYPE_STYLES: Record<GroupType, { bg: string; text: string }> = {
     text: 'text-gray-700 dark:text-gray-400',
   },
 };
-
-function getAccountName(accountId: string, accounts?: ParsedAccount[]): string {
-  if (!accounts) {
-    return accountId;
-  }
-  const account = accounts.find((a) => a.id === accountId);
-  return account?.name ?? accountId;
-}
 
 export default function GroupExpenses({
   groups,

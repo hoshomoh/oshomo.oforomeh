@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - parse-decimal-number has no type declarations
 import parseDecimalNumber from 'parse-decimal-number';
+import { parseISO } from 'date-fns';
 import {
   type TransactionDocument,
   type AccountDocument,
@@ -52,7 +53,7 @@ export function parseTransaction(doc: TransactionDocument): ParsedTransaction {
     categoryId: '',
     accountId: details.account_id,
     description: '',
-    date: new Date(details.date),
+    date: parseISO(details.date),
     groupId: null,
     participants: {},
     createdAt: doc.created_at,

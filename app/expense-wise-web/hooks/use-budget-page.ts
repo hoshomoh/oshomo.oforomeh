@@ -1,28 +1,13 @@
 import * as React from 'react';
-import { startOfMonth, endOfMonth, addMonths, format } from 'date-fns';
-import type {
-  DateRangePreset,
-  ParsedBudget,
-  ParsedTransaction,
-  Currency,
-} from '../lib/types';
+import { startOfMonth, endOfMonth, addMonths, subMonths, format, min } from 'date-fns';
+import { parseMonthKey } from '../lib/date';
+import type { DateRangePreset, ParsedBudget, ParsedTransaction, Currency } from '../lib/types';
+import { getBudgetDateRange, getPrimaryCurrency, computeMonthlyBudgets } from '../lib/budget-utils';
+import type { MonthBudgetData } from '../lib/budget-utils';
 
 type AvailableMonth = {
   value: string;
   label: string;
-};
-
-type MonthBudgetData = {
-  monthKey: string;
-  monthLabel: string;
-  totalActual: number;
-  overallPercentage: number;
-  categories: {
-    categoryId: string;
-    budgeted: number;
-    actual: number;
-    percentage: number;
-  }[];
 };
 
 type BudgetPageResult = {
@@ -39,47 +24,40 @@ type BudgetPageResult = {
 export function useBudgetPage(
   transactions: ParsedTransaction[],
   budgets: ParsedBudget[],
-  helpers: {
-    getBudgetDateRange: (preset: DateRangePreset) => { from: Date; to: Date };
-    getPrimaryCurrency: (transactions: ParsedTransaction[]) => Currency;
-    computeMonthlyBudgets: (
-      transactions: ParsedTransaction[],
-      budget: ParsedBudget,
-      dateRange: { from: Date; to: Date },
-      primaryCurrency: Currency,
-    ) => MonthBudgetData[];
-  },
 ): BudgetPageResult {
   const [datePreset, setDatePreset] = React.useState<DateRangePreset>('this-month');
-  const [customMonth, setCustomMonth] = React.useState(() => format(new Date(), 'yyyy-MM'));
+  const [customMonth, setCustomMonth] = React.useState(() =>
+    format(subMonths(new Date(), 2), 'yyyy-MM'),
+  );
 
   const budget = budgets[0];
 
-  const primaryCurrency = React.useMemo(
-    () => helpers.getPrimaryCurrency(transactions),
-    [transactions, helpers],
-  );
+  const primaryCurrency = React.useMemo(() => getPrimaryCurrency(transactions), [transactions]);
 
   const dateRange = React.useMemo(() => {
     if (datePreset === 'custom') {
-      const [y, m] = customMonth.split('-').map(Number);
-      const d = new Date(y, m - 1, 1);
+      const d = parseMonthKey(customMonth);
       return { from: startOfMonth(d), to: endOfMonth(d) };
     }
-    return helpers.getBudgetDateRange(datePreset);
-  }, [datePreset, customMonth, helpers]);
+    return getBudgetDateRange(datePreset);
+  }, [datePreset, customMonth]);
 
   const availableMonths = React.useMemo(() => {
     if (transactions.length === 0) {
       return [];
     }
-    const dates = transactions.map((t) => t.date.getTime());
-    const earliest = new Date(Math.min(...dates));
+    const earliest = min(transactions.map((t) => t.date));
     const now = new Date();
+    // Exclude current and last month — they have dedicated presets
+    const thisMonthKey = format(now, 'yyyy-MM');
+    const lastMonthKey = format(subMonths(now, 1), 'yyyy-MM');
     const result: AvailableMonth[] = [];
     let c = startOfMonth(earliest);
     while (c <= startOfMonth(now)) {
-      result.push({ value: format(c, 'yyyy-MM'), label: format(c, 'MMMM yyyy') });
+      const key = format(c, 'yyyy-MM');
+      if (key !== thisMonthKey && key !== lastMonthKey) {
+        result.push({ value: key, label: format(c, 'MMMM yyyy') });
+      }
       c = addMonths(c, 1);
     }
     return result.reverse();
@@ -89,8 +67,8 @@ export function useBudgetPage(
     if (!budget) {
       return [];
     }
-    return helpers.computeMonthlyBudgets(transactions, budget, dateRange, primaryCurrency);
-  }, [transactions, budget, dateRange, primaryCurrency, helpers]);
+    return computeMonthlyBudgets(transactions, budget, dateRange, primaryCurrency);
+  }, [transactions, budget, dateRange, primaryCurrency]);
 
   return {
     budget,

@@ -14,14 +14,8 @@ import { EmptyState } from '../components/empty-state';
 export default function TransactionsPage() {
   const { transactions, accounts, groups, hasData, isLoading } = useData();
 
-  const {
-    currencies,
-    filters,
-    updateFilters,
-    searchQuery,
-    setSearchQuery,
-    displayedTransactions,
-  } = useTransactionSearch(transactions, accounts, groups);
+  const { currencies, filters, updateFilters, searchQuery, setSearchQuery, displayedTransactions } =
+    useTransactionSearch(transactions, accounts);
 
   if (isLoading) {
     return null;
@@ -65,7 +59,6 @@ export default function TransactionsPage() {
         currencies={currencies}
         groups={groups}
         transactions={transactions}
-        showComparison
       />
 
       <TransactionsTable transactions={displayedTransactions} accounts={accounts} pageSize={20} />

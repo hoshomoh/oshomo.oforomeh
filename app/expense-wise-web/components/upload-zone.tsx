@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload } from 'lucide-react';
+import { Upload, FlaskConical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import type { ImportResult } from '../lib/db';
@@ -14,13 +14,14 @@ interface UploadZoneProps {
 }
 
 export function UploadZone({ onImportComplete, className }: UploadZoneProps) {
-  const { isImporting, onDrop } = useFileImport(onImportComplete);
+  const { isImporting, onDrop, loadSampleData } = useFileImport(onImportComplete);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: { 'application/json': ['.json'] },
     maxFiles: 1,
     disabled: isImporting,
+    noClick: true,
   });
 
   return (
@@ -45,9 +46,15 @@ export function UploadZone({ onImportComplete, className }: UploadZoneProps) {
         </p>
         <p className="text-xs text-muted-foreground">Accepts .json export files from ExpenseWise</p>
       </div>
-      <Button variant="outline" size="sm" disabled={isImporting}>
-        {isImporting ? 'Importing...' : 'Browse Files'}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button variant="outline" size="sm" disabled={isImporting} onClick={open}>
+          {isImporting ? 'Importing...' : 'Browse Files'}
+        </Button>
+        <Button variant="ghost" size="sm" disabled={isImporting} onClick={loadSampleData}>
+          <FlaskConical className="size-4 mr-1.5" />
+          Try Sample Data
+        </Button>
+      </div>
     </div>
   );
 }

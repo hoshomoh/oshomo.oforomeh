@@ -83,15 +83,18 @@ export function useExpenseData() {
     loadData();
   }, [loadData]);
 
-  return {
-    transactions: state.transactions,
-    accounts: state.accounts,
-    budgets: state.budgets,
-    groups: state.groups,
-    metadata: state.metadata,
-    isLoading: state.isLoading,
-    error: state.error,
-    hasData: state.hasData,
-    refetch: loadData,
-  };
+  return React.useMemo(
+    () => ({
+      transactions: state.transactions,
+      accounts: state.accounts,
+      budgets: state.budgets,
+      groups: state.groups,
+      metadata: state.metadata,
+      isLoading: state.isLoading,
+      error: state.error,
+      hasData: state.hasData,
+      refetch: loadData,
+    }),
+    [state, loadData],
+  );
 }

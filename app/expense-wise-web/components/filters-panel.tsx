@@ -1,6 +1,7 @@
 'use client';
 
-import { CalendarIcon, ArrowLeftRight } from 'lucide-react';
+import * as React from 'react';
+import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import {
@@ -30,231 +31,137 @@ interface FiltersPanelProps {
   currencies: string[];
   groups?: ParsedGroup[];
   transactions?: ParsedTransaction[];
-  showComparison?: boolean;
 }
 
-export function FiltersPanel({
+export const FiltersPanel = React.memo(function FiltersPanel({
   filters,
   onFilterChange,
   accounts,
   currencies,
   groups,
   transactions,
-  showComparison = false,
 }: FiltersPanelProps) {
   const { filteredAccounts, filteredGroups, handleCurrencyChange, handleAccountChange } =
     useFilteredOptions({ filters, onFilterChange, accounts, transactions, groups });
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2">
-        {/* Date preset selector */}
+    <div className="flex flex-wrap items-center gap-2">
+      {/* Date preset selector */}
+      <Select
+        value={filters.datePreset}
+        onValueChange={(value: string) => onFilterChange({ datePreset: value as DateRangePreset })}
+      >
+        <SelectTrigger className="w-full sm:w-[160px]" size="sm">
+          <SelectValue placeholder="Date range" />
+        </SelectTrigger>
+        <SelectContent>
+          {Object.entries(DATE_PRESET_LABELS).map(([key, label]) => (
+            <SelectItem key={key} value={key}>
+              {label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Custom date range (visible only when preset is 'custom') */}
+      {filters.datePreset === 'custom' && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                'w-full sm:w-[280px] justify-start text-left font-normal',
+                !filters.dateRange.from && 'text-muted-foreground',
+              )}
+            >
+              <CalendarIcon className="size-4" />
+              {filters.dateRange.from ? (
+                filters.dateRange.to ? (
+                  <>
+                    {format(filters.dateRange.from, 'LLL dd, y')} -{' '}
+                    {format(filters.dateRange.to, 'LLL dd, y')}
+                  </>
+                ) : (
+                  format(filters.dateRange.from, 'LLL dd, y')
+                )
+              ) : (
+                <span>Pick a date range</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="start">
+            <Calendar
+              mode="range"
+              selected={{
+                from: filters.dateRange.from,
+                to: filters.dateRange.to,
+              }}
+              onSelect={(range) => {
+                if (range?.from) {
+                  onFilterChange({
+                    dateRange: {
+                      from: range.from,
+                      to: range.to ?? range.from,
+                    },
+                  });
+                }
+              }}
+              numberOfMonths={2}
+            />
+          </PopoverContent>
+        </Popover>
+      )}
+
+      {/* Currency filter */}
+      <Select value={filters.currency} onValueChange={handleCurrencyChange}>
+        <SelectTrigger className="w-full sm:w-[150px]" size="sm">
+          <SelectValue placeholder="Currency" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Currencies</SelectItem>
+          {currencies.map((currency) => (
+            <SelectItem key={currency} value={currency}>
+              {currency}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Account filter */}
+      <Select value={filters.accountId} onValueChange={handleAccountChange}>
+        <SelectTrigger className="w-full sm:w-[160px]" size="sm">
+          <SelectValue placeholder="Account" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Accounts</SelectItem>
+          {filteredAccounts.map((account) => (
+            <SelectItem key={account.id} value={account.id}>
+              {account.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Group filter */}
+      {filteredGroups && filteredGroups.length > 0 && (
         <Select
-          value={filters.datePreset}
-          onValueChange={(value: string) =>
-            onFilterChange({ datePreset: value as DateRangePreset })
-          }
+          value={filters.groupId}
+          onValueChange={(value: string) => onFilterChange({ groupId: value })}
         >
           <SelectTrigger className="w-full sm:w-[160px]" size="sm">
-            <SelectValue placeholder="Date range" />
+            <SelectValue placeholder="Group" />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(DATE_PRESET_LABELS).map(([key, label]) => (
-              <SelectItem key={key} value={key}>
-                {label}
+            <SelectItem value="all">All Groups</SelectItem>
+            {filteredGroups.map((group) => (
+              <SelectItem key={group.id} value={group.id}>
+                {group.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-
-        {/* Custom date range (visible only when preset is 'custom') */}
-        {filters.datePreset === 'custom' && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  'w-full sm:w-[280px] justify-start text-left font-normal',
-                  !filters.dateRange.from && 'text-muted-foreground',
-                )}
-              >
-                <CalendarIcon className="size-4" />
-                {filters.dateRange.from ? (
-                  filters.dateRange.to ? (
-                    <>
-                      {format(filters.dateRange.from, 'LLL dd, y')} -{' '}
-                      {format(filters.dateRange.to, 'LLL dd, y')}
-                    </>
-                  ) : (
-                    format(filters.dateRange.from, 'LLL dd, y')
-                  )
-                ) : (
-                  <span>Pick a date range</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="start">
-              <Calendar
-                mode="range"
-                selected={{
-                  from: filters.dateRange.from,
-                  to: filters.dateRange.to,
-                }}
-                onSelect={(range) => {
-                  if (range?.from) {
-                    onFilterChange({
-                      dateRange: {
-                        from: range.from,
-                        to: range.to ?? range.from,
-                      },
-                    });
-                  }
-                }}
-                numberOfMonths={2}
-              />
-            </PopoverContent>
-          </Popover>
-        )}
-
-        {/* Currency filter */}
-        <Select value={filters.currency} onValueChange={handleCurrencyChange}>
-          <SelectTrigger className="w-full sm:w-[150px]" size="sm">
-            <SelectValue placeholder="Currency" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Currencies</SelectItem>
-            {currencies.map((currency) => (
-              <SelectItem key={currency} value={currency}>
-                {currency}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Account filter */}
-        <Select value={filters.accountId} onValueChange={handleAccountChange}>
-          <SelectTrigger className="w-full sm:w-[160px]" size="sm">
-            <SelectValue placeholder="Account" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Accounts</SelectItem>
-            {filteredAccounts.map((account) => (
-              <SelectItem key={account.id} value={account.id}>
-                {account.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Group filter */}
-        {filteredGroups && filteredGroups.length > 0 && (
-          <Select
-            value={filters.groupId}
-            onValueChange={(value: string) => onFilterChange({ groupId: value })}
-          >
-            <SelectTrigger className="w-full sm:w-[160px]" size="sm">
-              <SelectValue placeholder="Group" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Groups</SelectItem>
-              {filteredGroups.map((group) => (
-                <SelectItem key={group.id} value={group.id}>
-                  {group.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {/* Compare toggle */}
-        {showComparison && (
-          <Button
-            variant={filters.compareEnabled ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => onFilterChange({ compareEnabled: !filters.compareEnabled })}
-            className="gap-1.5"
-          >
-            <ArrowLeftRight className="size-3.5" />
-            Compare
-          </Button>
-        )}
-      </div>
-
-      {/* Comparison date range row */}
-      {showComparison && filters.compareEnabled && (
-        <div className="flex items-start gap-2">
-          <span className="text-xs text-muted-foreground font-medium mt-2 shrink-0">vs</span>
-          <div className="flex flex-wrap items-center gap-2">
-            <Select
-              value={filters.compareDatePreset}
-              onValueChange={(value: string) =>
-                onFilterChange({ compareDatePreset: value as DateRangePreset })
-              }
-            >
-              <SelectTrigger className="w-full sm:w-[160px]" size="sm">
-                <SelectValue placeholder="Compare to" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(DATE_PRESET_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {filters.compareDatePreset === 'custom' && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      'w-full sm:w-[280px] justify-start text-left font-normal',
-                      !filters.compareDateRange.from && 'text-muted-foreground',
-                    )}
-                  >
-                    <CalendarIcon className="size-4" />
-                    {filters.compareDateRange.from ? (
-                      filters.compareDateRange.to ? (
-                        <>
-                          {format(filters.compareDateRange.from, 'LLL dd, y')} -{' '}
-                          {format(filters.compareDateRange.to, 'LLL dd, y')}
-                        </>
-                      ) : (
-                        format(filters.compareDateRange.from, 'LLL dd, y')
-                      )
-                    ) : (
-                      <span>Pick a date range</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="start">
-                  <Calendar
-                    mode="range"
-                    selected={{
-                      from: filters.compareDateRange.from,
-                      to: filters.compareDateRange.to,
-                    }}
-                    onSelect={(range) => {
-                      if (range?.from) {
-                        onFilterChange({
-                          compareDateRange: {
-                            from: range.from,
-                            to: range.to ?? range.from,
-                          },
-                        });
-                      }
-                    }}
-                    numberOfMonths={2}
-                  />
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-        </div>
       )}
     </div>
   );
-}
+});

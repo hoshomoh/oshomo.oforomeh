@@ -1,6 +1,9 @@
 import { CURRENCY_SYMBOLS } from './constants';
 import { getCategoryMeta } from './constants';
 import { format, formatDistanceToNow } from 'date-fns';
+import { ensureDate, parseMonthKey } from './date';
+import { TransactionType } from './types';
+import type { ParsedAccount } from './types';
 
 /**
  * Format a number as currency with the appropriate symbol.
@@ -15,36 +18,17 @@ export function formatCurrency(amount: number, currency: string): string {
 }
 
 /**
- * Format a number as compact currency (e.g., "€1.2K").
- */
-export function formatCurrencyCompact(amount: number, currency: string): string {
-  const symbol = CURRENCY_SYMBOLS[currency] ?? currency;
-  const abs = Math.abs(amount);
-  let formatted: string;
-  if (abs >= 1_000_000) {
-    formatted = `${(abs / 1_000_000).toFixed(1)}M`;
-  } else if (abs >= 1_000) {
-    formatted = `${(abs / 1_000).toFixed(1)}K`;
-  } else {
-    formatted = abs.toFixed(2);
-  }
-  return `${amount < 0 ? '-' : ''}${symbol}${formatted}`;
-}
-
-/**
  * Format a date for display.
  */
 export function formatDate(date: Date | string | number, pattern = 'MMM d, yyyy'): string {
-  const d = date instanceof Date ? date : new Date(date);
-  return format(d, pattern);
+  return format(ensureDate(date), pattern);
 }
 
 /**
  * Format a date as relative time (e.g., "2 days ago").
  */
 export function formatRelativeDate(date: Date | string | number): string {
-  const d = date instanceof Date ? date : new Date(date);
-  return formatDistanceToNow(d, { addSuffix: true });
+  return formatDistanceToNow(ensureDate(date), { addSuffix: true });
 }
 
 /**
@@ -69,8 +53,7 @@ export function formatMonthKey(key: string): string {
   if (!year || !month) {
     return key;
   }
-  const date = new Date(year, month - 1, 1);
-  return format(date, 'MMM yyyy');
+  return format(parseMonthKey(`${year}-${String(month).padStart(2, '0')}`), 'MMM yyyy');
 }
 
 /**
@@ -82,4 +65,78 @@ export function sortMonthKeys(keys: string[]): string[] {
     const [by, bm] = b.split('_').map(Number);
     return ay - by || am - bm;
   });
+}
+
+/**
+ * Get the display name for an account, falling back to the raw ID.
+ */
+export function getAccountName(accountId: string, accounts?: ParsedAccount[]): string {
+  if (!accounts) {
+    return accountId;
+  }
+  const account = accounts.find((a) => a.id === accountId);
+  return account?.name ?? accountId;
+}
+
+/**
+ * Truncate a description string to a maximum length, appending "..." if truncated.
+ */
+export function truncateDescription(description: string, maxLength = 40): string {
+  if (description.length <= maxLength) {
+    return description;
+  }
+  return `${description.slice(0, maxLength)}...`;
+}
+
+/**
+ * Format a byte size as a human-readable string (GB or MB).
+ */
+export function formatSize(bytes: number): string {
+  const gb = bytes / (1024 * 1024 * 1024);
+  return gb >= 1 ? `${gb.toFixed(1)} GB` : `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
+}
+
+/**
+ * Calculate the percentage change between a current and previous value.
+ * Returns null if there is no valid previous value to compare against.
+ */
+export function calculatePercentageChange(current: number, previous?: number): number | null {
+  if (previous === undefined || previous === 0) {
+    return null;
+  }
+  return ((current - previous) / previous) * 100;
+}
+
+/**
+ * Get the Tailwind color class for a transaction amount based on its type.
+ */
+export function getAmountColorClass(type: TransactionType): string {
+  switch (type) {
+    case TransactionType.INCOME:
+      return 'text-emerald-600 dark:text-emerald-400';
+    case TransactionType.EXPENSE:
+      return 'text-red-600 dark:text-red-400';
+    case TransactionType.TRANSFER:
+      return 'text-blue-600 dark:text-blue-400';
+    default:
+      return '';
+  }
+}
+
+/**
+ * Get the badge variant for a transaction type.
+ */
+export function getTypeBadgeVariant(
+  type: TransactionType,
+): 'default' | 'secondary' | 'destructive' | 'outline' {
+  switch (type) {
+    case TransactionType.INCOME:
+      return 'default';
+    case TransactionType.EXPENSE:
+      return 'destructive';
+    case TransactionType.TRANSFER:
+      return 'secondary';
+    default:
+      return 'outline';
+  }
 }

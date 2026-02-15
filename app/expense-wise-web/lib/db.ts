@@ -1,4 +1,5 @@
 import { openDB as idbOpen, type IDBPDatabase, type DBSchema } from 'idb';
+import { formatISO } from 'date-fns';
 import type {
   ExpenseWiseDocument,
   ExpenseWiseExport,
@@ -7,6 +8,7 @@ import type {
   BudgetDocument,
   GroupDocument,
   AppMetadata,
+  DataSource,
   LLMConfig,
 } from './types';
 
@@ -71,9 +73,22 @@ export type ImportResult = {
 /**
  * Import documents from an export file into IndexedDB.
  * Uses put() which upserts by _id — latest upload wins.
+ * If the previous import was sample data, clears all documents first.
  */
-export async function importDocuments(exportData: ExpenseWiseExport): Promise<ImportResult> {
+export async function importDocuments(
+  exportData: ExpenseWiseExport,
+  dataSource: DataSource = 'user',
+): Promise<ImportResult> {
   const db = await getDB();
+
+  // Clear existing data if previous import was sample data
+  const existingMeta = await db.get('metadata', 'app-metadata');
+  if (existingMeta?.dataSource === 'sample') {
+    const clearTx = db.transaction('documents', 'readwrite');
+    await clearTx.objectStore('documents').clear();
+    await clearTx.done;
+  }
+
   const tx = db.transaction(['documents', 'metadata'], 'readwrite');
   const docStore = tx.objectStore('documents');
   const metaStore = tx.objectStore('metadata');
@@ -105,8 +120,9 @@ export async function importDocuments(exportData: ExpenseWiseExport): Promise<Im
     userId: exportData.userId,
     appVersion: exportData.appVersion,
     backedUpAt: exportData.backedUpAt,
-    lastImportedAt: new Date().toISOString(),
+    lastImportedAt: formatISO(new Date()),
     documentCount: result.total,
+    dataSource,
   };
   await metaStore.put(metadata);
 

@@ -21,7 +21,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { formatCurrency, formatDate } from '../lib/format';
+import {
+  formatCurrency,
+  formatDate,
+  truncateDescription,
+  getAmountColorClass,
+  getTypeBadgeVariant,
+} from '../lib/format';
 import { getCategoryMeta } from '../lib/constants';
 import { TransactionType } from '../lib/types';
 import type { ParsedTransaction, ParsedAccount } from '../lib/types';
@@ -37,50 +43,7 @@ type TransactionsTableProps = {
   className?: string;
 };
 
-function getAccountName(accountId: string, accounts?: ParsedAccount[]): string {
-  if (!accounts) {
-    return accountId;
-  }
-  const account = accounts.find((a) => a.id === accountId);
-  return account?.name ?? accountId;
-}
-
-function truncateDescription(description: string, maxLength = 40): string {
-  if (description.length <= maxLength) {
-    return description;
-  }
-  return `${description.slice(0, maxLength)}...`;
-}
-
-function getAmountColorClass(type: TransactionType): string {
-  switch (type) {
-    case TransactionType.INCOME:
-      return 'text-emerald-600 dark:text-emerald-400';
-    case TransactionType.EXPENSE:
-      return 'text-red-600 dark:text-red-400';
-    case TransactionType.TRANSFER:
-      return 'text-blue-600 dark:text-blue-400';
-    default:
-      return '';
-  }
-}
-
-function getTypeBadgeVariant(
-  type: TransactionType,
-): 'default' | 'secondary' | 'destructive' | 'outline' {
-  switch (type) {
-    case TransactionType.INCOME:
-      return 'default';
-    case TransactionType.EXPENSE:
-      return 'destructive';
-    case TransactionType.TRANSFER:
-      return 'secondary';
-    default:
-      return 'outline';
-  }
-}
-
-export default function TransactionsTable({
+export default React.memo(function TransactionsTable({
   transactions,
   accounts,
   pageSize = 10,
@@ -94,6 +57,7 @@ export default function TransactionsTable({
     currentPage,
     currentPageSize,
     handleSort,
+    accountNameMap,
     sortedTransactions,
     paginatedTransactions,
     totalPages,
@@ -204,7 +168,7 @@ export default function TransactionsTable({
                     {formatCurrency(tx.amount, tx.currency)}
                   </TableCell>
                   <TableCell className="text-muted-foreground hidden md:table-cell">
-                    {getAccountName(tx.accountId, accounts)}
+                    {accountNameMap.get(tx.accountId) ?? tx.accountId}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <Badge variant={getTypeBadgeVariant(tx.type)} className="text-[10px]">
@@ -236,10 +200,7 @@ export default function TransactionsTable({
             </p>
             <div className="flex items-center gap-1.5">
               <span className="text-sm text-muted-foreground">Rows:</span>
-              <Select
-                value={String(currentPageSize)}
-                onValueChange={(v) => setPageSize(Number(v))}
-              >
+              <Select value={String(currentPageSize)} onValueChange={(v) => setPageSize(Number(v))}>
                 <SelectTrigger className="w-[70px]" size="sm">
                   <SelectValue />
                 </SelectTrigger>
@@ -252,12 +213,7 @@ export default function TransactionsTable({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={prevPage}
-              disabled={currentPage === 0}
-            >
+            <Button variant="outline" size="sm" onClick={prevPage} disabled={currentPage === 0}>
               <ChevronLeft className="size-4" />
               Prev
             </Button>
@@ -278,4 +234,4 @@ export default function TransactionsTable({
       )}
     </div>
   );
-}
+});

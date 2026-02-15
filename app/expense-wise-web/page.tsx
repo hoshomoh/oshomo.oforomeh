@@ -1,30 +1,69 @@
 'use client';
 
+import * as React from 'react';
+import dynamic from 'next/dynamic';
 import { useData } from './context/data-context';
 import { useFilters } from './hooks/use-filters';
 import { useDashboardStats } from './hooks/use-dashboard-stats';
 import { PageHeader } from './components/page-header';
 import { FiltersPanel } from './components/filters-panel';
 import SummaryCards from './components/summary-cards';
-import { CategoryPieChart } from './components/charts/category-pie-chart';
-import { IncomeExpenseBarChart } from './components/charts/income-expense-bar-chart';
-import { MonthlyTrendChart } from './components/charts/monthly-trend-chart';
-import { TopCategoriesChart } from './components/charts/top-categories-chart';
 import TransactionsTable from './components/transactions-table';
 import { EmptyState } from './components/empty-state';
 import { UploadZone } from './components/upload-zone';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function ChartSkeleton() {
+  return <Skeleton className="h-72 w-full rounded-lg" />;
+}
+
+const CategoryPieChart = dynamic(
+  () => import('./components/charts/category-pie-chart').then((mod) => mod.CategoryPieChart),
+  { loading: ChartSkeleton, ssr: false },
+);
+
+const IncomeExpenseBarChart = dynamic(
+  () =>
+    import('./components/charts/income-expense-bar-chart').then((mod) => mod.IncomeExpenseBarChart),
+  { loading: ChartSkeleton, ssr: false },
+);
+
+const MonthlyTrendChart = dynamic(
+  () => import('./components/charts/monthly-trend-chart').then((mod) => mod.MonthlyTrendChart),
+  { loading: ChartSkeleton, ssr: false },
+);
+
+const TopCategoriesChart = dynamic(
+  () => import('./components/charts/top-categories-chart').then((mod) => mod.TopCategoriesChart),
+  { loading: ChartSkeleton, ssr: false },
+);
 
 export default function ExpenseWiseWebPage() {
   const { transactions, accounts, budgets, groups, hasData, isLoading, refetch } = useData();
 
-  const currencies = [...new Set(transactions.map((t) => t.currency))];
-  const { filters, updateFilters, filteredTransactions, comparisonTransactions } = useFilters(
-    transactions,
-    accounts,
+  const currencies = React.useMemo(
+    () => [...new Set(transactions.map((t) => t.currency))],
+    [transactions],
   );
+  const { filters, updateFilters, filteredTransactions } = useFilters(transactions, accounts);
+  const handleImportComplete = React.useCallback(() => refetch(), [refetch]);
 
   const stats = useDashboardStats(filteredTransactions, accounts, budgets[0], filters.dateRange);
-  const comparisonStats = useDashboardStats(comparisonTransactions, accounts, budgets[0]);
+
+  const pieChartData = React.useMemo(
+    () =>
+      stats.topCategories.map((c) => ({
+        categoryId: c.categoryId,
+        amount: c.amount,
+        percentage: c.percentage,
+      })),
+    [stats.topCategories],
+  );
+
+  const trendChartData = React.useMemo(
+    () => stats.monthlyData.map((m) => ({ month: m.month, amount: m.expenses })),
+    [stats.monthlyData],
+  );
 
   if (isLoading) {
     return null;
@@ -40,7 +79,7 @@ export default function ExpenseWiseWebPage() {
           className="min-h-0"
         />
         <div className="w-full max-w-lg">
-          <UploadZone onImportComplete={() => refetch()} />
+          <UploadZone onImportComplete={handleImportComplete} />
         </div>
       </div>
     );
@@ -57,7 +96,6 @@ export default function ExpenseWiseWebPage() {
         currencies={currencies}
         groups={groups}
         transactions={transactions}
-        showComparison
       />
 
       <SummaryCards
@@ -68,30 +106,11 @@ export default function ExpenseWiseWebPage() {
         prevMonthIncome={stats.prevMonthTotalIncome}
         prevMonthExpenses={stats.prevMonthTotalExpenses}
         currency={stats.primaryCurrency}
-        comparison={
-          filters.compareEnabled
-            ? {
-                totalIncome: comparisonStats.totalIncome,
-                totalExpenses: comparisonStats.totalExpenses,
-                netBalance: comparisonStats.netBalance,
-                transactionCount: comparisonStats.transactionCount,
-              }
-            : undefined
-        }
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <CategoryPieChart
-          data={stats.topCategories.map((c) => ({
-            categoryId: c.categoryId,
-            amount: c.amount,
-            percentage: c.percentage,
-          }))}
-        />
-        <MonthlyTrendChart
-          data={stats.monthlyData.map((m) => ({ month: m.month, amount: m.expenses }))}
-          currency={stats.primaryCurrency}
-        />
+        <CategoryPieChart data={pieChartData} />
+        <MonthlyTrendChart data={trendChartData} currency={stats.primaryCurrency} />
       </div>
 
       <TopCategoriesChart data={stats.topCategories} currency={stats.primaryCurrency} />

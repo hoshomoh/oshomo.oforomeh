@@ -1,5 +1,7 @@
+import { format, min, max } from 'date-fns';
 import type { ParsedTransaction, ParsedAccount, ParsedBudget, ParsedGroup } from '../types';
 import { formatCurrency } from '../format';
+import { getCategoryMeta } from '../constants';
 
 /**
  * Build a lightweight summary of the user's financial data for the LLM system prompt.
@@ -16,10 +18,10 @@ export function buildDataSummary(
   }
 
   // Date range
-  const dates = transactions.map((t) => t.date.getTime());
-  const minDate = new Date(Math.min(...dates));
-  const maxDate = new Date(Math.max(...dates));
-  const dateRange = `${minDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} to ${maxDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+  const txDates = transactions.map((t) => t.date);
+  const minDate = min(txDates);
+  const maxDate = max(txDates);
+  const dateRange = `${format(minDate, 'MMM yyyy')} to ${format(maxDate, 'MMM yyyy')}`;
 
   // Transaction counts by type
   const expenses = transactions.filter((t) => t.type === 'EXPENSE').length;
@@ -42,12 +44,21 @@ export function buildDataSummary(
   const groupLine =
     groups.length > 0 ? `Groups: ${groups.map((g) => g.name).join(', ')}.` : 'No groups.';
 
+  // Categories present in the user's data (id → label mapping)
+  const categoryIds = [...new Set(transactions.map((t) => t.categoryId).filter(Boolean))];
+  const categoryLines = categoryIds
+    .map((id) => `  - "${id}" → ${getCategoryMeta(id).label}`)
+    .sort()
+    .join('\n');
+
   return `Financial data overview:
 - ${transactions.length} transactions (${expenses} expenses, ${incomes} income, ${transfers} transfers) from ${dateRange}
 - Accounts: ${accountSummary || 'None'}
 - ${budgetLine}
 - ${groupLine}
 - Currencies: ${currencies.join(', ')}
+- Categories (use these IDs with the categoryId filter in searchTransactions and getSpendingByCategory):
+${categoryLines}
 
 Use the provided tools to search and analyze this data. Do NOT guess numbers — always use tools to get accurate figures.`;
 }

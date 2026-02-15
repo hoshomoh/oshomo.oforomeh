@@ -22,6 +22,13 @@
 
 - **Use `useReducer` when `useState` count exceeds 2** - When a component needs more than 2 pieces of related state, consolidate them into a `useReducer` with typed actions. This keeps state transitions predictable and co-located.
 
+## Date Handling
+
+- **Always use `date-fns` for all date manipulations** — never use raw `Date` constructor, `.getFullYear()`, `.getMonth()`, `.getTime()`, `.toISOString()`, `.toLocaleDateString()`, or similar native Date methods
+- Use `date-fns` functions instead: `format`, `parseISO`, `getTime`, `getYear`, `getMonth`, `startOfMonth`, `compareDesc`, `compareAsc`, etc.
+- For common patterns, use helpers from `lib/date.ts` (e.g., `toISODate`, `toMonthKey`, `compareDatesDesc`)
+- Exception: `new Date()` (no arguments) is acceptable for getting "now" — but prefer wrapping it in date-fns operations immediately
+
 ## React Patterns
 
 - **Minimize `useEffect` usage** - Only use `useEffect` for true side effects (event listeners, DOM mutations, async data fetching on mount, persisting to storage). Prefer these alternatives:

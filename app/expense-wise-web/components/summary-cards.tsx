@@ -1,17 +1,11 @@
 'use client';
 
+import * as React from 'react';
 import { TrendingUp, TrendingDown, Wallet, ArrowLeftRight } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { formatCurrency, formatPercentage } from '../lib/format';
-
-type ComparisonData = {
-  totalIncome: number;
-  totalExpenses: number;
-  netBalance: number;
-  transactionCount: number;
-};
+import { formatCurrency, formatPercentage, calculatePercentageChange } from '../lib/format';
 
 type SummaryCardsProps = {
   totalIncome: number;
@@ -22,15 +16,7 @@ type SummaryCardsProps = {
   prevMonthExpenses?: number;
   currency?: string;
   className?: string;
-  comparison?: ComparisonData;
 };
-
-function calculatePercentageChange(current: number, previous?: number): number | null {
-  if (previous === undefined || previous === 0) {
-    return null;
-  }
-  return ((current - previous) / previous) * 100;
-}
 
 function PercentageChangeBadge({ change, label }: { change: number | null; label?: string }) {
   if (change === null) {
@@ -57,32 +43,7 @@ function PercentageChangeBadge({ change, label }: { change: number | null; label
   );
 }
 
-function ComparisonValue({
-  current,
-  comparisonValue,
-  currency,
-  invertDirection = false,
-}: {
-  current: number;
-  comparisonValue: number;
-  currency: string;
-  invertDirection?: boolean;
-}) {
-  const change = calculatePercentageChange(current, comparisonValue);
-  // For expenses, a decrease is good (invert the color logic)
-  const displayChange = invertDirection && change !== null ? -change : change;
-
-  return (
-    <div className="mt-1.5 pt-1.5 border-t border-dashed">
-      <p className="text-xs text-muted-foreground mb-0.5">
-        Comparison: {formatCurrency(comparisonValue, currency)}
-      </p>
-      <PercentageChangeBadge change={displayChange} label="vs comparison" />
-    </div>
-  );
-}
-
-export default function SummaryCards({
+export default React.memo(function SummaryCards({
   totalIncome,
   totalExpenses,
   netBalance,
@@ -91,7 +52,6 @@ export default function SummaryCards({
   prevMonthExpenses,
   currency = 'EUR',
   className,
-  comparison,
 }: SummaryCardsProps) {
   const incomeChange = calculatePercentageChange(totalIncome, prevMonthIncome);
   const expenseChange = calculatePercentageChange(totalExpenses, prevMonthExpenses);
@@ -117,21 +77,12 @@ export default function SummaryCards({
           <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
             {formatCurrency(totalIncome, currency)}
           </div>
-          {!comparison && (
-            <div className="mt-1 flex items-center gap-2">
-              <PercentageChangeBadge
-                change={incomeChange}
-                label={incomeChange !== null ? 'vs last month' : undefined}
-              />
-            </div>
-          )}
-          {comparison && (
-            <ComparisonValue
-              current={totalIncome}
-              comparisonValue={comparison.totalIncome}
-              currency={currency}
+          <div className="mt-1 flex items-center gap-2">
+            <PercentageChangeBadge
+              change={incomeChange}
+              label={incomeChange !== null ? 'vs last month' : undefined}
             />
-          )}
+          </div>
         </CardContent>
       </Card>
 
@@ -151,22 +102,12 @@ export default function SummaryCards({
           <div className="text-2xl font-bold text-red-600 dark:text-red-400">
             {formatCurrency(totalExpenses, currency)}
           </div>
-          {!comparison && (
-            <div className="mt-1 flex items-center gap-2">
-              <PercentageChangeBadge
-                change={expenseImprovementChange}
-                label={expenseChange !== null ? 'vs last month' : undefined}
-              />
-            </div>
-          )}
-          {comparison && (
-            <ComparisonValue
-              current={totalExpenses}
-              comparisonValue={comparison.totalExpenses}
-              currency={currency}
-              invertDirection
+          <div className="mt-1 flex items-center gap-2">
+            <PercentageChangeBadge
+              change={expenseImprovementChange}
+              label={expenseChange !== null ? 'vs last month' : undefined}
             />
-          )}
+          </div>
         </CardContent>
       </Card>
 
@@ -205,18 +146,9 @@ export default function SummaryCards({
           >
             {formatCurrency(netBalance, currency)}
           </div>
-          {!comparison && (
-            <div className="mt-1">
-              <span className="text-xs text-muted-foreground">Income - Expenses</span>
-            </div>
-          )}
-          {comparison && (
-            <ComparisonValue
-              current={netBalance}
-              comparisonValue={comparison.netBalance}
-              currency={currency}
-            />
-          )}
+          <div className="mt-1">
+            <span className="text-xs text-muted-foreground">Income - Expenses</span>
+          </div>
         </CardContent>
       </Card>
 
@@ -234,20 +166,11 @@ export default function SummaryCards({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{transactionCount.toLocaleString()}</div>
-          {!comparison && (
-            <div className="mt-1">
-              <span className="text-xs text-muted-foreground">Total transactions</span>
-            </div>
-          )}
-          {comparison && (
-            <div className="mt-1.5 pt-1.5 border-t border-dashed">
-              <p className="text-xs text-muted-foreground">
-                Comparison: {comparison.transactionCount.toLocaleString()}
-              </p>
-            </div>
-          )}
+          <div className="mt-1">
+            <span className="text-xs text-muted-foreground">Total transactions</span>
+          </div>
         </CardContent>
       </Card>
     </div>
   );
-}
+});

@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import {
   ChartContainer,
@@ -29,7 +30,11 @@ const chartConfig: ChartConfig = {
   },
 };
 
-export function MonthlyTrendChart({ data, currency = 'USD', className }: MonthlyTrendChartProps) {
+export const MonthlyTrendChart = React.memo(function MonthlyTrendChart({
+  data,
+  currency = 'USD',
+  className,
+}: MonthlyTrendChartProps) {
   if (!data.length) {
     return (
       <Card className={cn(className)}>
@@ -86,4 +91,4 @@ export function MonthlyTrendChart({ data, currency = 'USD', className }: Monthly
       </CardContent>
     </Card>
   );
-}
+});

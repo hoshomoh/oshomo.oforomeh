@@ -321,14 +321,13 @@ export type DashboardFilters = {
   accountId: string | 'all';
   categoryId: string | 'all';
   groupId: string | 'all';
-  compareEnabled: boolean;
-  compareDateRange: { from: Date; to: Date };
-  compareDatePreset: DateRangePreset;
 };
 
 // ============================================================
 // App metadata (stored in IndexedDB)
 // ============================================================
+export type DataSource = 'user' | 'sample';
+
 export type AppMetadata = {
   key: 'app-metadata';
   userId: string;
@@ -336,4 +335,5 @@ export type AppMetadata = {
   backedUpAt: string;
   lastImportedAt: string;
   documentCount: number;
+  dataSource?: DataSource;
 };

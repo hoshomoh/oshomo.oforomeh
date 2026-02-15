@@ -3,8 +3,10 @@
 import * as React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { User, Bot } from 'lucide-react';
+import { useJsonRenderMessage } from '@json-render/react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { ChatRenderer } from './chat-renderer';
 import type { UIMessage } from 'ai';
 
 type ChatMessageProps = {
@@ -16,13 +18,16 @@ type ChatMessageProps = {
 export function ChatMessage({ role, parts, className }: ChatMessageProps) {
   const isUser = role === 'user';
 
-  // Extract text content from message parts
-  const textContent = parts
-    .filter(
-      (part): part is Extract<UIMessage['parts'][number], { type: 'text' }> => part.type === 'text',
-    )
-    .map((part) => part.text)
-    .join('');
+  // Filter out reasoning parts so they don't appear as visible text
+  const visibleParts = React.useMemo(() => parts.filter((p) => p.type !== 'reasoning'), [parts]);
+
+  const { spec, text, hasSpec } = useJsonRenderMessage(visibleParts);
+
+  // Don't render assistant bubbles that have no content yet
+  // (e.g. tool-only messages during multistep calls)
+  if (!isUser && !text && !hasSpec) {
+    return null;
+  }
 
   return (
     <div className={cn('flex gap-3', isUser && 'flex-row-reverse', className)}>
@@ -33,15 +38,20 @@ export function ChatMessage({ role, parts, className }: ChatMessageProps) {
       </Avatar>
       <div
         className={cn(
-          'rounded-lg px-4 py-2 max-w-[80%]',
-          isUser ? 'bg-primary text-primary-foreground' : 'bg-muted',
+          'rounded-lg px-4 py-2',
+          isUser ? 'bg-primary text-primary-foreground max-w-[80%]' : 'bg-muted w-full',
         )}
       >
         {isUser ? (
-          <p className="text-sm whitespace-pre-wrap">{textContent}</p>
+          <p className="text-sm whitespace-pre-wrap">{text}</p>
         ) : (
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            <ReactMarkdown>{textContent}</ReactMarkdown>
+          <div className="space-y-3">
+            {text && (
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown>{text}</ReactMarkdown>
+              </div>
+            )}
+            {hasSpec && <ChatRenderer spec={spec} />}
           </div>
         )}
       </div>

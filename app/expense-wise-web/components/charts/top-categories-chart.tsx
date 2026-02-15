@@ -2,16 +2,12 @@
 
 import * as React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Cell } from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { getCategoryMeta } from '@/app/expense-wise-web/lib/constants';
 import { formatCurrency } from '@/app/expense-wise-web/lib/format';
+import { useCategoryChartConfig } from '@/app/expense-wise-web/hooks/use-category-chart-config';
 
 type TopCategoriesChartData = {
   categoryId: string;
@@ -25,30 +21,30 @@ type TopCategoriesChartProps = {
   className?: string;
 };
 
-export function TopCategoriesChart({ data, currency = 'USD', className }: TopCategoriesChartProps) {
+export const TopCategoriesChart = React.memo(function TopCategoriesChart({
+  data,
+  currency = 'USD',
+  className,
+}: TopCategoriesChartProps) {
   const slicedData = React.useMemo(() => data.slice(0, 8), [data]);
+  const { categoryMetaMap, chartConfig: baseChartConfig } = useCategoryChartConfig(slicedData);
 
-  const chartConfig = React.useMemo<ChartConfig>(() => {
-    const config: ChartConfig = {};
-    for (const item of slicedData) {
-      const meta = getCategoryMeta(item.categoryId);
-      config[item.categoryId] = {
-        label: meta.label,
-        color: meta.color,
-      };
-    }
-    config.amount = { label: 'Amount' };
-    return config;
-  }, [slicedData]);
+  const chartConfig = React.useMemo(
+    () => ({ ...baseChartConfig, amount: { label: 'Amount' } }),
+    [baseChartConfig],
+  );
 
   const chartData = React.useMemo(
     () =>
-      slicedData.map((item) => ({
-        ...item,
-        categoryLabel: getCategoryMeta(item.categoryId).label,
-        fill: getCategoryMeta(item.categoryId).color,
-      })),
-    [slicedData],
+      slicedData.map((item) => {
+        const meta = categoryMetaMap.get(item.categoryId)!;
+        return {
+          ...item,
+          categoryLabel: meta.label,
+          fill: meta.color,
+        };
+      }),
+    [slicedData, categoryMetaMap],
   );
 
   if (!data.length) {
@@ -133,4 +129,4 @@ export function TopCategoriesChart({ data, currency = 'USD', className }: TopCat
       </CardContent>
     </Card>
   );
-}
+});

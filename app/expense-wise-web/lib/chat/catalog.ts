@@ -111,8 +111,17 @@ export const catalog = defineCatalog(schema, {
 });
 
 /**
- * Get the system prompt that describes available UI components to the LLM.
+ * Get the system prompt for chat mode that describes available UI components.
+ * Uses mode: "chat" so the LLM responds conversationally then outputs JSONL specs.
  */
-export function getCatalogPrompt(): string {
-  return catalog.prompt();
+export function getChatCatalogPrompt(): string {
+  return catalog.prompt({
+    mode: 'chat',
+    customRules: [
+      'Put chart data arrays in /state and reference them with { "$state": "/path" } on the data prop.',
+      'Keep the UI clean and information-dense — no excessive padding or empty space.',
+      'Prefer combining a SummaryCard headline with a detail chart or table below it.',
+      'For SummaryCard, the value prop is a pre-formatted string like "€1,234.56", NOT a number.',
+    ],
+  });
 }

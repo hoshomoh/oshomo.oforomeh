@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import {
   ChartContainer,
@@ -34,7 +35,7 @@ const chartConfig: ChartConfig = {
   },
 };
 
-export function IncomeExpenseBarChart({
+export const IncomeExpenseBarChart = React.memo(function IncomeExpenseBarChart({
   data,
   currency = 'USD',
   className,
@@ -84,4 +85,4 @@ export function IncomeExpenseBarChart({
       </CardContent>
     </Card>
   );
-}
+});
