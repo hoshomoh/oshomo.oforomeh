@@ -4,7 +4,16 @@ import * as React from 'react';
 import { getLLMConfig, saveLLMConfig, saveSetting } from '../lib/db';
 import type { LLMConfig } from '../lib/types';
 
-export function useSettings() {
+type SettingsContextValue = {
+  config: LLMConfig | undefined;
+  isLoading: boolean;
+  saveConfig: (newConfig: LLMConfig) => Promise<void>;
+  clearConfig: () => Promise<void>;
+};
+
+const SettingsContext = React.createContext<SettingsContextValue | undefined>(undefined);
+
+export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [config, setConfig] = React.useState<LLMConfig | undefined>(undefined);
   const [isLoading, setIsLoading] = React.useState(true);
 
@@ -32,10 +41,23 @@ export function useSettings() {
     setConfig(undefined);
   }, []);
 
-  return {
-    config,
-    isLoading,
-    saveConfig,
-    clearConfig,
-  };
+  const value = React.useMemo(
+    () => ({
+      config,
+      isLoading,
+      saveConfig,
+      clearConfig,
+    }),
+    [config, isLoading, saveConfig, clearConfig],
+  );
+
+  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
+}
+
+export function useSettings() {
+  const context = React.useContext(SettingsContext);
+  if (context === undefined) {
+    throw new Error('useSettings must be used within a SettingsProvider');
+  }
+  return context;
 }

@@ -38,8 +38,8 @@
       },
       "_id": "account_5fb9220d-9b0f-4d32-a248-6492457c3890",
       "_rev": "1-fd41202f17c0b62fddab63abf98b7ec9",
-      "created_at": 1771148357723,
-      "updated_at": 1771148358723
+      "created_at": 1771192863484,
+      "updated_at": 1771192864484
     },
     {
       "data_type": "account",
@@ -78,8 +78,8 @@
       },
       "_id": "account_21ffc41a-7170-4e4a-9488-2fcfe9e13056",
       "_rev": "1-a1c9d723ad21f1cf11f88befa81bc9d2",
-      "created_at": 1771123419526,
-      "updated_at": 1771123420526
+      "created_at": 1771167925287,
+      "updated_at": 1771167926287
     },
     {
       "data_type": "account",
@@ -118,8 +118,8 @@
       },
       "_id": "account_d5482c1f-c30d-4bbc-b151-d95145bae71b",
       "_rev": "1-df9dcd06edad64a7c1fffb6bf3ecefd9",
-      "created_at": 1771146635838,
-      "updated_at": 1771146636838
+      "created_at": 1771191141599,
+      "updated_at": 1771191142599
     },
     {
       "data_type": "account",
@@ -158,8 +158,8 @@
       },
       "_id": "account_8c786010-a58e-436c-8314-2ecadc2e8ce5",
       "_rev": "1-592ed5ed72ebabcccd820adf4307c89d",
-      "created_at": 1771107070545,
-      "updated_at": 1771107071545
+      "created_at": 1771151576305,
+      "updated_at": 1771151577305
     },
     {
       "data_type": "account",
@@ -198,8 +198,8 @@
       },
       "_id": "account_36dd0863-15f5-48b5-bff4-74409804e327",
       "_rev": "1-dae34036312a48bf0bd1de16ba448ad8",
-      "created_at": 1771159614670,
-      "updated_at": 1771159615670
+      "created_at": 1771204120430,
+      "updated_at": 1771204121430
     },
     {
       "data_type": "group",
@@ -208,8 +208,8 @@
       "type": "TRIP",
       "_id": "group_3ac3b5aa-81d5-4209-aa08-3a2b6e251ee4",
       "_rev": "1-a05fdbb29b55807472ddeba1bca9267e",
-      "created_at": 1771149340965,
-      "updated_at": 1771149341965
+      "created_at": 1771193846725,
+      "updated_at": 1771193847725
     },
     {
       "data_type": "group",
@@ -218,8 +218,8 @@
       "type": "HOME",
       "_id": "group_d8831eea-55be-4eca-912e-901a028ba3b3",
       "_rev": "1-7fd52353463d1b9f28fdb53eecc6a479",
-      "created_at": 1771139609866,
-      "updated_at": 1771139610866
+      "created_at": 1771184115626,
+      "updated_at": 1771184116626
     },
     {
       "data_type": "group",
@@ -228,8 +228,8 @@
       "type": "COUPLE",
       "_id": "group_bada9154-3f6e-4ac8-b973-b40a2ffe50e6",
       "_rev": "1-52d6c3ab1721f7b5eada97ecf2ae31ac",
-      "created_at": 1771145288663,
-      "updated_at": 1771145289663
+      "created_at": 1771189794423,
+      "updated_at": 1771189795423
     },
     {
       "data_type": "group",
@@ -238,8 +238,8 @@
       "type": "TRIP",
       "_id": "group_fd46d528-eb91-49f2-a8eb-bb54ccde88ca",
       "_rev": "1-3b433beb7d8b98a6ab5d8bdd2ed73bdb",
-      "created_at": 1771115242429,
-      "updated_at": 1771115243429
+      "created_at": 1771159748189,
+      "updated_at": 1771159749189
     },
     {
       "data_type": "group",
@@ -248,8 +248,8 @@
       "type": "OTHERS",
       "_id": "group_ce561907-8490-40d5-928c-391088abf85c",
       "_rev": "1-b365a0cad7c2c28b35ffefb573dc8ae3",
-      "created_at": 1771110561892,
-      "updated_at": 1771110562892
+      "created_at": 1771155067652,
+      "updated_at": 1771155068652
     },
     {
       "data_type": "group",
@@ -258,8 +258,8 @@
       "type": "TRIP",
       "_id": "group_710fdb62-248b-4a4f-9b89-635c0100db71",
       "_rev": "1-bd0decfef3cd9aee92fc2edbd817b078",
-      "created_at": 1771138220774,
-      "updated_at": 1771138221774
+      "created_at": 1771182726534,
+      "updated_at": 1771182727534
     },
     {
       "data_type": "budget",
@@ -285,8 +285,8 @@
       },
       "_id": "budget_e55b7372-276e-459a-80a2-f261f891b3e3",
       "_rev": "1-0ac1b9b98c34ce85e803fe045e02b3e5",
-      "created_at": 1771142610971,
-      "updated_at": 1771142611971
+      "created_at": 1771187116731,
+      "updated_at": 1771187117731
     },
     {
       "data_type": "transaction",
@@ -79746,5 +79746,5 @@
     }
   ],
   "appVersion": "3.2.0",
-  "backedUpAt": "2026-02-15T21:30:22.865Z"
+  "backedUpAt": "2026-02-16T09:52:08.624Z"
 }

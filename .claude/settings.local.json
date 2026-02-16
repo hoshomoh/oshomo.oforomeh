@@ -6,7 +6,8 @@
       "Bash(yarn tsc:*)",
       "WebFetch(domain:docs.orama.com)",
       "Bash(npx shadcn@latest add command:*)",
-      "WebFetch(domain:zod.dev)"
+      "WebFetch(domain:zod.dev)",
+      "Bash(yarn why:*)"
     ]
   }
 }

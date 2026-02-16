@@ -761,6 +761,7 @@ function generate() {
     '..',
     '..',
     'public',
+    'data',
     'expense-wise-sample-data.json',
   );
   fs.writeFileSync(outPath, JSON.stringify(exportData, null, 2), 'utf-8');

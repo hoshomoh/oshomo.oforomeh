@@ -13,7 +13,7 @@ import { config } from 'dotenv';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 
-// Load .env file from project root if it exists (local development)
+// Load the.env file from the project root if it exists (local development)
 // On platforms like Vercel, env vars are set directly and no .env file exists
 const envPath = join(process.cwd(), '.env');
 if (existsSync(envPath)) {

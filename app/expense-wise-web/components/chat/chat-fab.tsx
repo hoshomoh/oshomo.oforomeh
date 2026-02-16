@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ChatInterface } from './chat-interface';
 import { useData } from '../../context/data-context';
-import { useSettings } from '../../hooks/use-settings';
+import { useSettings } from '../../context/settings-context';
+import { useChat } from '../../context/chat-context';
 import { buildDataSummary } from '../../lib/chat/data-summary';
 
 export function ChatFAB() {
-  const [open, setOpen] = React.useState(false);
+  const { isOpen, open, close } = useChat();
   const { transactions, accounts, budgets, groups, hasData } = useData();
   const { config } = useSettings();
 
@@ -27,9 +28,9 @@ export function ChatFAB() {
   return (
     <>
       {/* Floating Action Button */}
-      {!open && (
+      {!isOpen && (
         <Button
-          onClick={() => setOpen(true)}
+          onClick={open}
           size="icon"
           className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow"
         >
@@ -44,7 +45,7 @@ export function ChatFAB() {
       )}
 
       {/* Chat Sheet */}
-      <Sheet open={open} onOpenChange={setOpen}>
+      <Sheet open={isOpen} onOpenChange={(open) => (open ? open : close())}>
         <SheetContent
           side="right"
           showCloseButton={false}
@@ -53,12 +54,7 @@ export function ChatFAB() {
           <SheetHeader className="px-4 py-3 border-b shrink-0">
             <div className="flex items-center justify-between">
               <SheetTitle className="text-base">Chat with your data</SheetTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setOpen(false)}
-                className="h-8 w-8"
-              >
+              <Button variant="ghost" size="icon" onClick={close} className="h-8 w-8">
                 <X className="h-4 w-4" />
               </Button>
             </div>

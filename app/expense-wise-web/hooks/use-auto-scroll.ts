@@ -33,7 +33,15 @@ export function useAutoScroll<T extends HTMLElement = HTMLDivElement>(deps: Reac
 
   React.useEffect(() => {
     if (isNearBottomRef.current && scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      // Use double RAF to ensure layout is complete before scrolling
+      // This prevents scroll issues when rendering large components (e.g., tables)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+          }
+        });
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);

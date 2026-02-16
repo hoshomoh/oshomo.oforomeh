@@ -294,11 +294,17 @@ export type ParsedGroup = {
 // ============================================================
 export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'mistral' | 'groq' | 'ollama';
 
-export type LLMConfig = {
-  provider: LLMProvider;
+// Per-provider configuration (no provider field, since it's the key)
+export type ProviderConfig = {
   apiKey: string;
   model: string;
-  ollamaBaseUrl?: string;
+  ollamaBaseUrl?: string; // Only used for ollama
+};
+
+// Multi-provider configuration store (replaces old LLMConfig)
+export type LLMConfig = {
+  current: LLMProvider; // Currently active provider
+  providers: Partial<Record<LLMProvider, ProviderConfig>>; // Per-provider configs
 };
 
 // ============================================================

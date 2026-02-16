@@ -5,7 +5,7 @@
 
 import { validateExportFile } from '../lib/validators';
 import { parseTransaction, parseAccount, parseBudget, parseGroup } from '../lib/parsers';
-import data from '../../../public/expense-wise-sample-data.json';
+import data from '../../../public/data/expense-wise-sample-data.json';
 
 // 1. Validate structure
 const result = validateExportFile(data);

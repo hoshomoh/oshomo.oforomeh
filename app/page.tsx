@@ -232,7 +232,7 @@ export default async function AboutPage() {
           href={pictureOfTheDay.sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden lg:block fixed inset-y-0 right-0 left-[28rem] z-10 overflow-hidden"
+          className="hidden lg:block fixed top-8 bottom-8 right-8 left-[calc(28rem+2rem)] z-10 overflow-hidden rounded-2xl shadow-2xl"
         >
           <Image
             src={pictureOfTheDay.imageUrl}

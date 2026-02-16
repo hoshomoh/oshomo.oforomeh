@@ -48,7 +48,7 @@ export function useFileImport(onImportComplete?: (result: ImportResult) => void)
     setIsImporting(true);
 
     try {
-      const response = await fetch('/expense-wise-sample-data.json');
+      const response = await fetch('/data/expense-wise-sample-data.json');
       if (!response.ok) {
         throw new Error('Failed to fetch sample data.');
       }

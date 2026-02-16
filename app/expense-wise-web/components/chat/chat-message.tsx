@@ -30,7 +30,7 @@ export function ChatMessage({ role, parts, className }: ChatMessageProps) {
   }
 
   return (
-    <div className={cn('flex gap-3', isUser && 'flex-row-reverse', className)}>
+    <div className={cn('flex gap-3 min-w-0', isUser && 'flex-row-reverse', className)}>
       <Avatar className="h-8 w-8 shrink-0">
         <AvatarFallback className={isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'}>
           {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
@@ -38,7 +38,7 @@ export function ChatMessage({ role, parts, className }: ChatMessageProps) {
       </Avatar>
       <div
         className={cn(
-          'rounded-lg px-4 py-2',
+          'rounded-lg px-4 py-2 min-w-0',
           isUser ? 'bg-primary text-primary-foreground max-w-[80%]' : 'bg-muted w-full',
         )}
       >
@@ -51,7 +51,11 @@ export function ChatMessage({ role, parts, className }: ChatMessageProps) {
                 <ReactMarkdown>{text}</ReactMarkdown>
               </div>
             )}
-            {hasSpec && <ChatRenderer spec={spec} />}
+            {hasSpec && (
+              <div className="overflow-x-auto">
+                <ChatRenderer spec={spec} />
+              </div>
+            )}
           </div>
         )}
       </div>

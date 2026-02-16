@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { toast } from 'sonner';
 import { PROVIDER_META, type ProviderMeta } from '../lib/constants';
-import type { LLMConfig, LLMProvider } from '../lib/types';
+import type { LLMConfig, LLMProvider, ProviderConfig } from '../lib/types';
 
 type OllamaModel = {
   name: string;
@@ -39,10 +39,8 @@ type UseLLMConfigFormReturn = {
 };
 
 type LLMConfigFormState = {
-  provider: LLMProvider;
-  apiKey: string;
-  model: string;
-  ollamaBaseUrl: string;
+  currentProvider: LLMProvider; // Active provider in the form
+  providers: Partial<Record<LLMProvider, ProviderConfig>>; // All provider configs
   showApiKey: boolean;
   saving: boolean;
   ollamaModels: OllamaModel[];
@@ -50,9 +48,9 @@ type LLMConfigFormState = {
 };
 
 type LLMConfigFormAction =
-  | { type: 'SET_API_KEY'; apiKey: string }
-  | { type: 'SET_MODEL'; model: string }
-  | { type: 'SET_OLLAMA_BASE_URL'; url: string }
+  | { type: 'SET_API_KEY'; provider: LLMProvider; apiKey: string }
+  | { type: 'SET_MODEL'; provider: LLMProvider; model: string }
+  | { type: 'SET_OLLAMA_BASE_URL'; baseUrl: string }
   | { type: 'SET_SHOW_API_KEY'; show: boolean }
   | { type: 'SET_SAVING'; saving: boolean }
   | { type: 'SET_FETCHING_OLLAMA_MODELS'; fetching: boolean }
@@ -66,11 +64,42 @@ function llmConfigFormReducer(
 ): LLMConfigFormState {
   switch (action.type) {
     case 'SET_API_KEY':
-      return { ...state, apiKey: action.apiKey };
+      return {
+        ...state,
+        providers: {
+          ...state.providers,
+          [action.provider]: {
+            ...state.providers[action.provider],
+            apiKey: action.apiKey,
+            model: state.providers[action.provider]?.model ?? '',
+          },
+        },
+      };
     case 'SET_MODEL':
-      return { ...state, model: action.model };
+      return {
+        ...state,
+        providers: {
+          ...state.providers,
+          [action.provider]: {
+            ...state.providers[action.provider],
+            apiKey: state.providers[action.provider]?.apiKey ?? '',
+            model: action.model,
+          },
+        },
+      };
     case 'SET_OLLAMA_BASE_URL':
-      return { ...state, ollamaBaseUrl: action.url };
+      return {
+        ...state,
+        providers: {
+          ...state.providers,
+          ollama: {
+            ...state.providers.ollama,
+            apiKey: state.providers.ollama?.apiKey ?? '',
+            model: state.providers.ollama?.model ?? '',
+            ollamaBaseUrl: action.baseUrl,
+          },
+        },
+      };
     case 'SET_SHOW_API_KEY':
       return { ...state, showApiKey: action.show };
     case 'SET_SAVING':
@@ -78,19 +107,30 @@ function llmConfigFormReducer(
     case 'SET_FETCHING_OLLAMA_MODELS':
       return { ...state, fetchingOllamaModels: action.fetching };
     case 'PROVIDER_CHANGE':
+      // Just update the pointer - provider configs remain intact
       return {
         ...state,
-        provider: action.provider,
+        currentProvider: action.provider,
         ollamaModels: action.provider === 'ollama' ? state.ollamaModels : [],
-        model: action.defaultModel ?? state.model,
       };
-    case 'OLLAMA_FETCH_SUCCESS':
+    case 'OLLAMA_FETCH_SUCCESS': {
+      const currentModel = state.providers.ollama?.model ?? '';
+      const selectedModel = action.selectedModel ?? currentModel;
       return {
         ...state,
         ollamaModels: action.models,
         fetchingOllamaModels: false,
-        model: action.selectedModel ?? state.model,
+        providers: {
+          ...state.providers,
+          ollama: {
+            ...state.providers.ollama,
+            apiKey: state.providers.ollama?.apiKey ?? '',
+            model: selectedModel,
+            ollamaBaseUrl: state.providers.ollama?.ollamaBaseUrl ?? 'http://localhost:11434',
+          },
+        },
       };
+    }
     case 'OLLAMA_FETCH_ERROR':
       return { ...state, ollamaModels: [], fetchingOllamaModels: false };
     default:
@@ -103,30 +143,31 @@ export function useLLMConfigForm({
   onSave,
 }: UseLLMConfigFormProps): UseLLMConfigFormReturn {
   const [state, dispatch] = React.useReducer(llmConfigFormReducer, {
-    provider: config?.provider ?? 'openai',
-    apiKey: config?.apiKey ?? '',
-    model: config?.model ?? '',
-    ollamaBaseUrl: config?.ollamaBaseUrl ?? 'http://localhost:11434',
+    currentProvider: config?.current ?? 'openai',
+    providers: config?.providers ?? {},
     showApiKey: false,
     saving: false,
     ollamaModels: [],
     fetchingOllamaModels: false,
   });
 
-  const providerMeta = PROVIDER_META[state.provider];
+  const currentConfig = state.providers[state.currentProvider];
+  const providerMeta = PROVIDER_META[state.currentProvider];
 
   const fetchOllamaModels = React.useCallback(async () => {
     dispatch({ type: 'SET_FETCHING_OLLAMA_MODELS', fetching: true });
     try {
-      const baseUrl = state.ollamaBaseUrl.replace(/\/+$/, '');
+      const ollamaConfig = state.providers.ollama;
+      const baseUrl = (ollamaConfig?.ollamaBaseUrl ?? 'http://localhost:11434').replace(/\/+$/, '');
       const res = await fetch(`${baseUrl}/api/tags`);
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
       }
       const data = await res.json();
       const models: OllamaModel[] = data.models ?? [];
+      const currentModel = ollamaConfig?.model ?? '';
       const selectedModel =
-        models.length > 0 && !models.some((m) => m.name === state.model)
+        models.length > 0 && !models.some((m) => m.name === currentModel)
           ? models[0].name
           : undefined;
       dispatch({ type: 'OLLAMA_FETCH_SUCCESS', models, selectedModel });
@@ -135,7 +176,7 @@ export function useLLMConfigForm({
       toast.error('Could not connect to Ollama. Make sure it is running.');
       dispatch({ type: 'OLLAMA_FETCH_ERROR' });
     }
-  }, [state.ollamaBaseUrl, state.model]);
+  }, [state.providers]);
 
   const handleProviderChange = React.useCallback(
     (newProvider: LLMProvider) => {
@@ -144,22 +185,26 @@ export function useLLMConfigForm({
         fetchOllamaModels();
       } else {
         const meta = PROVIDER_META[newProvider];
+        const currentModel = state.providers[newProvider]?.model ?? '';
         const defaultModel =
-          meta.models.length > 0 && !meta.models.find((m) => m.id === state.model)
+          meta.models.length > 0 && !meta.models.find((m) => m.id === currentModel)
             ? meta.models[0].id
             : undefined;
         dispatch({ type: 'PROVIDER_CHANGE', provider: newProvider, defaultModel });
       }
     },
-    [fetchOllamaModels, state.model],
+    [fetchOllamaModels, state.providers],
   );
 
   const handleSave = React.useCallback(async () => {
-    if (providerMeta.requiresApiKey && !state.apiKey.trim()) {
+    const apiKey = currentConfig?.apiKey ?? '';
+    const model = currentConfig?.model ?? '';
+
+    if (providerMeta.requiresApiKey && !apiKey.trim()) {
       toast.error('API key is required for this provider');
       return;
     }
-    if (!state.model.trim()) {
+    if (!model.trim()) {
       toast.error('Please select or enter a model name');
       return;
     }
@@ -167,10 +212,8 @@ export function useLLMConfigForm({
     dispatch({ type: 'SET_SAVING', saving: true });
     try {
       await onSave({
-        provider: state.provider,
-        apiKey: state.apiKey.trim(),
-        model: state.model.trim(),
-        ollamaBaseUrl: state.provider === 'ollama' ? state.ollamaBaseUrl : undefined,
+        current: state.currentProvider,
+        providers: state.providers,
       });
       toast.success('LLM configuration saved');
     } catch {
@@ -178,23 +221,18 @@ export function useLLMConfigForm({
     } finally {
       dispatch({ type: 'SET_SAVING', saving: false });
     }
-  }, [
-    providerMeta.requiresApiKey,
-    state.apiKey,
-    state.model,
-    onSave,
-    state.provider,
-    state.ollamaBaseUrl,
-  ]);
+  }, [currentConfig, providerMeta.requiresApiKey, onSave, state.currentProvider, state.providers]);
 
   return {
-    provider: state.provider,
-    apiKey: state.apiKey,
-    setApiKey: (key: string) => dispatch({ type: 'SET_API_KEY', apiKey: key }),
-    model: state.model,
-    setModel: (model: string) => dispatch({ type: 'SET_MODEL', model }),
-    ollamaBaseUrl: state.ollamaBaseUrl,
-    setOllamaBaseUrl: (url: string) => dispatch({ type: 'SET_OLLAMA_BASE_URL', url }),
+    provider: state.currentProvider,
+    apiKey: currentConfig?.apiKey ?? '',
+    setApiKey: (key: string) =>
+      dispatch({ type: 'SET_API_KEY', provider: state.currentProvider, apiKey: key }),
+    model: currentConfig?.model ?? '',
+    setModel: (model: string) =>
+      dispatch({ type: 'SET_MODEL', provider: state.currentProvider, model }),
+    ollamaBaseUrl: currentConfig?.ollamaBaseUrl ?? 'http://localhost:11434',
+    setOllamaBaseUrl: (url: string) => dispatch({ type: 'SET_OLLAMA_BASE_URL', baseUrl: url }),
     showApiKey: state.showApiKey,
     setShowApiKey: (show: boolean) => dispatch({ type: 'SET_SHOW_API_KEY', show }),
     saving: state.saving,

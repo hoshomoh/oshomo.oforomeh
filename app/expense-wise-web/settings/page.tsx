@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useData } from '../context/data-context';
-import { useSettings } from '../hooks/use-settings';
+import { useSettings } from '../context/settings-context';
 import { PageHeader } from '../components/page-header';
 import { LLMConfigForm } from '../components/settings/llm-config-form';
 import { DataManagement } from '../components/settings/data-management';
@@ -19,7 +19,7 @@ export default function SettingsPage() {
       <UploadZone onImportComplete={() => refetch()} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        <LLMConfigForm key={config?.provider ?? 'none'} config={config} onSave={saveConfig} />
+        <LLMConfigForm key={config?.current ?? 'none'} config={config} onSave={saveConfig} />
         <DataManagement onDataCleared={refetch} />
       </div>
     </div>

@@ -30,17 +30,51 @@ import { TrendingUp, TrendingDown, Minus, ChevronRight } from 'lucide-react';
 import { useChatNavigation } from '../../hooks/use-chat-navigation';
 import { catalog } from './catalog';
 
+// Get resolved CSS variable colors
+function getChartColor(index: number): string {
+  if (typeof window === 'undefined') {
+    return '#8b5cf6'; // Fallback for SSR
+  }
+  const root = document.documentElement;
+  const style = getComputedStyle(root);
+  const varName = `--chart-${index}`;
+  const colorValue = style.getPropertyValue(varName).trim();
+
+  if (colorValue) {
+    return colorValue; // Already includes oklch() wrapper
+  }
+
+  // Fallback colors
+  const fallbacks = ['#8b5cf6', '#ec4899', '#f97316', '#06b6d4', '#84cc16'];
+  return fallbacks[index - 1] || '#8b5cf6';
+}
+
+function getMutedColor(): string {
+  if (typeof window === 'undefined') {
+    return '#f3f4f6'; // Fallback for SSR
+  }
+  const root = document.documentElement;
+  const style = getComputedStyle(root);
+  const colorValue = style.getPropertyValue('--muted').trim();
+
+  if (colorValue) {
+    return colorValue; // Already includes oklch() wrapper
+  }
+
+  return '#f3f4f6';
+}
+
 const CHART_COLORS = [
-  'hsl(var(--chart-1))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
-  '#8b5cf6',
-  '#ec4899',
-  '#f97316',
-  '#06b6d4',
-  '#84cc16',
+  () => getChartColor(1),
+  () => getChartColor(2),
+  () => getChartColor(3),
+  () => getChartColor(4),
+  () => getChartColor(5),
+  () => '#8b5cf6',
+  () => '#ec4899',
+  () => '#f97316',
+  () => '#06b6d4',
+  () => '#84cc16',
 ];
 
 type CatalogType = typeof catalog;
@@ -96,7 +130,7 @@ const CategoryPieChartComponent: ComponentFn<CatalogType, 'CategoryPieChart'> = 
               onClick={(entry) => navigateToCategory(entry.label)}
             >
               {props.data.map((_entry, i) => (
-                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]()} />
               ))}
             </Pie>
             <Tooltip
@@ -126,7 +160,7 @@ const BarChartComponent: ComponentFn<CatalogType, 'BarChart'> = ({ props }) => (
           <XAxis dataKey="label" className="text-xs" />
           <YAxis className="text-xs" />
           <Tooltip />
-          <Bar dataKey="value" fill={props.color || 'hsl(var(--chart-1))'} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="value" fill={props.color || getChartColor(1)} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </CardContent>
@@ -148,13 +182,8 @@ const IncomeExpenseChartComponent: ComponentFn<CatalogType, 'IncomeExpenseChart'
           <YAxis className="text-xs" />
           <Tooltip />
           <Legend />
-          <Bar dataKey="income" fill="hsl(var(--chart-2))" name="Income" radius={[4, 4, 0, 0]} />
-          <Bar
-            dataKey="expenses"
-            fill="hsl(var(--chart-1))"
-            name="Expenses"
-            radius={[4, 4, 0, 0]}
-          />
+          <Bar dataKey="income" fill={getChartColor(2)} name="Income" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="expenses" fill={getChartColor(1)} name="Expenses" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </CardContent>
@@ -193,10 +222,10 @@ const BudgetComparisonChartComponent: ComponentFn<CatalogType, 'BudgetComparison
             />
             <Tooltip />
             <Legend />
-            <Bar dataKey="budgeted" fill="hsl(var(--muted))" name="Budget" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="budgeted" fill={getMutedColor()} name="Budget" radius={[0, 4, 4, 0]} />
             <Bar
               dataKey="actual"
-              fill="hsl(var(--chart-1))"
+              fill={getChartColor(1)}
               name="Actual"
               radius={[0, 4, 4, 0]}
               cursor="pointer"

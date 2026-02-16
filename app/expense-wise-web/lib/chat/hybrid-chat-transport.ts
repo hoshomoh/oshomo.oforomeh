@@ -1,11 +1,11 @@
+import type { ChatTransport, UIMessage, UIMessageChunk } from 'ai';
 import {
-  streamText,
   convertToModelMessages,
   createUIMessageStream,
   DefaultChatTransport,
   stepCountIs,
+  streamText,
 } from 'ai';
-import type { ChatTransport, UIMessage, UIMessageChunk } from 'ai';
 import { pipeJsonRender } from '@json-render/core';
 import { getModel } from './provider-registry';
 import { buildSystemPrompt } from './system-prompt';
@@ -36,6 +36,14 @@ export class HybridChatTransport implements ChatTransport<UIMessage> {
     this.llmConfig = llmConfig;
     this.dataSummary = dataSummary;
 
+    // Extract current provider config
+    const currentProvider = llmConfig.current;
+    const currentConfig = llmConfig.providers[currentProvider];
+    const provider = currentProvider;
+    const apiKey = currentConfig?.apiKey ?? '';
+    const model = currentConfig?.model ?? '';
+    const ollamaBaseUrl = currentConfig?.ollamaBaseUrl;
+
     this.cloudTransport = new DefaultChatTransport({
       api,
       prepareSendMessagesRequest(request) {
@@ -43,11 +51,10 @@ export class HybridChatTransport implements ChatTransport<UIMessage> {
           ...msg,
           providerMetadata: undefined,
           parts: msg.parts?.map((part) => {
-            const {
-              providerMetadata: _pm,
-              callProviderMetadata: _cpm,
-              ...rest
-            } = part as Record<string, unknown>;
+            const { providerMetadata, callProviderMetadata, ...rest } = part as Record<
+              string,
+              unknown
+            >;
             return rest;
           }),
         }));
@@ -55,10 +62,10 @@ export class HybridChatTransport implements ChatTransport<UIMessage> {
         return {
           body: {
             messages: cleanMessages,
-            provider: llmConfig.provider,
-            model: llmConfig.model,
-            apiKey: llmConfig.apiKey,
-            ollamaBaseUrl: llmConfig.ollamaBaseUrl,
+            provider,
+            model,
+            apiKey,
+            ollamaBaseUrl,
             dataSummary,
             ...request.body,
           },
@@ -70,7 +77,7 @@ export class HybridChatTransport implements ChatTransport<UIMessage> {
   async sendMessages(
     options: Parameters<ChatTransport<UIMessage>['sendMessages']>[0],
   ): Promise<ReadableStream<UIMessageChunk>> {
-    if (this.llmConfig.provider === 'ollama') {
+    if (this.llmConfig.current === 'ollama') {
       return this.sendMessagesClientSide(options);
     }
     return this.cloudTransport.sendMessages(options);
@@ -79,7 +86,7 @@ export class HybridChatTransport implements ChatTransport<UIMessage> {
   async reconnectToStream(
     options: Parameters<ChatTransport<UIMessage>['reconnectToStream']>[0],
   ): Promise<ReadableStream<UIMessageChunk> | null> {
-    if (this.llmConfig.provider === 'ollama') {
+    if (this.llmConfig.current === 'ollama') {
       return null;
     }
     return this.cloudTransport.reconnectToStream(options);
@@ -91,16 +98,18 @@ export class HybridChatTransport implements ChatTransport<UIMessage> {
   }: Parameters<ChatTransport<UIMessage>['sendMessages']>[0]): Promise<
     ReadableStream<UIMessageChunk>
   > {
-    const llmModel = getModel(
-      this.llmConfig.provider,
-      this.llmConfig.model,
-      this.llmConfig.apiKey,
-      this.llmConfig.ollamaBaseUrl,
-    );
+    // Extract current provider config for client-side execution
+    const currentProvider = this.llmConfig.current;
+    const currentConfig = this.llmConfig.providers[currentProvider];
+    const apiKey = currentConfig?.apiKey ?? '';
+    const model = currentConfig?.model ?? '';
+    const ollamaBaseUrl = currentConfig?.ollamaBaseUrl;
+
+    const llmModel = getModel(currentProvider, model, apiKey, ollamaBaseUrl);
     const systemPrompt = buildSystemPrompt({ dataSummary: this.dataSummary });
     const modelMessages = await convertToModelMessages(messages);
 
-    const stream = createUIMessageStream({
+    return createUIMessageStream({
       execute: async ({ writer }) => {
         const result = streamText({
           model: llmModel,
@@ -119,7 +128,5 @@ export class HybridChatTransport implements ChatTransport<UIMessage> {
         writer.merge(pipeJsonRender(result.toUIMessageStream()));
       },
     });
-
-    return stream;
   }
 }
