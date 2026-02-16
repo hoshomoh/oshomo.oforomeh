@@ -18,6 +18,37 @@ export function formatCurrency(amount: number, currency: string): string {
 }
 
 /**
+ * Format large numbers with K/M/B suffixes for compact display.
+ * Use for dashboard cards where space is limited.
+ */
+export function formatCompactCurrency(amount: number, currency: string): string {
+  const symbol = CURRENCY_SYMBOLS[currency] ?? currency;
+  const absAmount = Math.abs(amount);
+  const sign = amount < 0 ? '-' : '';
+
+  let formatted: string;
+
+  if (absAmount >= 1_000_000_000) {
+    // Billions
+    formatted = (absAmount / 1_000_000_000).toFixed(2) + 'B';
+  } else if (absAmount >= 1_000_000) {
+    // Millions
+    formatted = (absAmount / 1_000_000).toFixed(2) + 'M';
+  } else if (absAmount >= 10_000) {
+    // Thousands (only for 10K+, keep small numbers as-is)
+    formatted = (absAmount / 1_000).toFixed(1) + 'K';
+  } else {
+    // Small amounts - show full number
+    formatted = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(absAmount);
+  }
+
+  return `${sign}${symbol}${formatted}`;
+}
+
+/**
  * Format a date for display.
  */
 export function formatDate(date: Date | string | number, pattern = 'MMM d, yyyy'): string {

@@ -107,9 +107,26 @@ export type SearchFilters = {
 };
 
 function buildDateWhere(dateFrom?: string, dateTo?: string): Record<string, unknown> | undefined {
+  // Validate date formats
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (dateFrom && !dateRegex.test(dateFrom)) {
+    throw new Error(`Invalid dateFrom format: ${dateFrom}. Expected YYYY-MM-DD`);
+  }
+  if (dateTo && !dateRegex.test(dateTo)) {
+    throw new Error(`Invalid dateTo format: ${dateTo}. Expected YYYY-MM-DD`);
+  }
+
   if (dateFrom && dateTo) {
+    const fromInt = parseInt(dateFrom.replace(/-/g, ''), 10);
+    const toInt = parseInt(dateTo.replace(/-/g, ''), 10);
+
+    // Validate range
+    if (fromInt > toInt) {
+      throw new Error(`Invalid date range: dateFrom (${dateFrom}) is after dateTo (${dateTo})`);
+    }
+
     return {
-      between: [parseInt(dateFrom.replace(/-/g, ''), 10), parseInt(dateTo.replace(/-/g, ''), 10)],
+      between: [fromInt, toInt],
     };
   }
   if (dateFrom) {
@@ -191,14 +208,19 @@ export function getSpendingByCategory(
     },
   }) as Results<TransactionSearchDoc>;
 
-  const map = new Map<string, { label: string; total: number; currency: string }>();
+  const map = new Map<
+    string,
+    { categoryId: string; label: string; total: number; currency: string }
+  >();
   for (const hit of results.hits) {
     const doc = hit.document;
-    const existing = map.get(doc.categoryId);
+    const key = `${doc.categoryId}\0${doc.currency}`;
+    const existing = map.get(key);
     if (existing) {
       existing.total += doc.amount;
     } else {
-      map.set(doc.categoryId, {
+      map.set(key, {
+        categoryId: doc.categoryId,
         label: doc.categoryLabel,
         total: doc.amount,
         currency: doc.currency,
@@ -206,8 +228,8 @@ export function getSpendingByCategory(
     }
   }
 
-  return [...map.entries()]
-    .map(([categoryId, { label, total, currency }]) => ({
+  return [...map.values()]
+    .map(({ categoryId, label, total, currency }) => ({
       categoryId,
       categoryLabel: label,
       total,
@@ -229,24 +251,43 @@ export function getMonthlyTrend(
     limit: 10000,
   }) as Results<TransactionSearchDoc>;
 
-  const map = new Map<string, { income: number; expenses: number; currency: string }>();
+  const map = new Map<
+    string,
+    { month: string; income: number; expenses: number; currency: string }
+  >();
   for (const hit of results.hits) {
     const doc = hit.document;
-    const existing = map.get(doc.month) ?? { income: 0, expenses: 0, currency: doc.currency };
-    if (doc.type === 'income') {
-      existing.income += doc.amount;
-    } else if (doc.type === 'expense') {
-      existing.expenses += doc.amount;
-      existing.currency = doc.currency;
+    if (doc.type !== 'income' && doc.type !== 'expense') {
+      continue;
     }
-    map.set(doc.month, existing);
+    const key = `${doc.month}\0${doc.currency}`;
+    const existing = map.get(key);
+    if (existing) {
+      if (doc.type === 'income') {
+        existing.income += doc.amount;
+      } else {
+        existing.expenses += doc.amount;
+      }
+    } else {
+      map.set(key, {
+        month: doc.month,
+        income: doc.type === 'income' ? doc.amount : 0,
+        expenses: doc.type === 'expense' ? doc.amount : 0,
+        currency: doc.currency,
+      });
+    }
   }
 
-  return [...map.entries()]
-    .map(([month, data]) => ({ month, ...data }))
-    .sort((a, b) => b.month.localeCompare(a.month))
-    .slice(0, months)
-    .reverse();
+  // Get the N most recent months, then return all currency entries for those months
+  const recentMonths = [...new Set([...map.values()].map((v) => v.month))]
+    .sort()
+    .reverse()
+    .slice(0, months);
+  const monthSet = new Set(recentMonths);
+
+  return [...map.values()]
+    .filter((v) => monthSet.has(v.month))
+    .sort((a, b) => a.month.localeCompare(b.month) || a.currency.localeCompare(b.currency));
 }
 
 /**
@@ -282,23 +323,34 @@ export function getBudgetStatus(
     return [];
   }
 
+  // Get all expense spending by (category, currency)
   const categoryTotals = getSpendingByCategory(db, undefined, 100);
-  const actualMap = new Map(
-    categoryTotals.map((c) => [c.categoryId, { total: c.total, currency: c.currency }]),
-  );
+
+  // Determine the budget currency: the currency with the most total spending
+  const currencyTotals = new Map<string, number>();
+  for (const c of categoryTotals) {
+    currencyTotals.set(c.currency, (currencyTotals.get(c.currency) ?? 0) + c.total);
+  }
+  const budgetCurrency = [...currencyTotals.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'EUR';
+
+  // Only compare budget against spending in the budget currency
+  const actualMap = new Map<string, number>();
+  for (const c of categoryTotals) {
+    if (c.currency === budgetCurrency) {
+      actualMap.set(c.categoryId, (actualMap.get(c.categoryId) ?? 0) + c.total);
+    }
+  }
 
   return Object.entries(budget.categories)
     .map(([categoryId, budgeted]) => {
-      const data = actualMap.get(categoryId);
-      const actual = data?.total ?? 0;
-      const currency = data?.currency ?? 'EUR';
+      const actual = actualMap.get(categoryId) ?? 0;
       return {
         categoryId,
         categoryLabel: getCategoryMeta(categoryId).label,
         budgeted,
         actual,
         percentage: budgeted > 0 ? (actual / budgeted) * 100 : 0,
-        currency,
+        currency: budgetCurrency,
       };
     })
     .sort((a, b) => b.percentage - a.percentage);
@@ -318,6 +370,31 @@ export function getGroupExpenses(
   currency: string;
   transactionCount: number;
 }[] {
+  const aggregateByGroupCurrency = (
+    hits: Results<TransactionSearchDoc>['hits'],
+    gId: string,
+    gName: string,
+  ) => {
+    const byCurrency = new Map<string, { total: number; count: number }>();
+    for (const h of hits) {
+      const doc = h.document;
+      const existing = byCurrency.get(doc.currency);
+      if (existing) {
+        existing.total += doc.amount;
+        existing.count += 1;
+      } else {
+        byCurrency.set(doc.currency, { total: doc.amount, count: 1 });
+      }
+    }
+    return [...byCurrency.entries()].map(([currency, data]) => ({
+      groupId: gId,
+      groupName: gName,
+      total: data.total,
+      currency,
+      transactionCount: data.count,
+    }));
+  };
+
   if (groupId) {
     const results = search(db, {
       term: '',
@@ -325,27 +402,22 @@ export function getGroupExpenses(
       where: { groupId, type: 'expense' },
     }) as Results<TransactionSearchDoc>;
 
-    const total = results.hits.reduce((s, h) => s + h.document.amount, 0);
     const groupName = results.hits[0]?.document.groupName ?? groupId;
-    const currency = results.hits[0]?.document.currency ?? 'EUR';
-
-    return [{ groupId, groupName, total, currency, transactionCount: results.count }];
+    return aggregateByGroupCurrency(results.hits, groupId, groupName);
   }
 
   if (!groups || groups.length === 0) {
     return [];
   }
 
-  return groups.map((g) => {
+  return groups.flatMap((g) => {
     const results = search(db, {
       term: '',
       limit: 10000,
       where: { groupId: g.id, type: 'expense' },
     }) as Results<TransactionSearchDoc>;
 
-    const total = results.hits.reduce((s, h) => s + h.document.amount, 0);
-    const currency = results.hits[0]?.document.currency ?? 'EUR';
-    return { groupId: g.id, groupName: g.name, total, currency, transactionCount: results.count };
+    return aggregateByGroupCurrency(results.hits, g.id, g.name);
   });
 }
 
@@ -474,23 +546,21 @@ export function getIncomeBySource(
     where,
   }) as Results<TransactionSearchDoc>;
 
-  const map = new Map<string, { total: number; count: number; currency: string }>();
+  const map = new Map<string, { source: string; total: number; count: number; currency: string }>();
   for (const hit of results.hits) {
     const doc = hit.document;
-    const key = doc.description || 'Other Income';
+    const source = doc.description || 'Other Income';
+    const key = `${source}\0${doc.currency}`;
     const existing = map.get(key);
     if (existing) {
       existing.total += doc.amount;
       existing.count += 1;
     } else {
-      map.set(key, { total: doc.amount, count: 1, currency: doc.currency });
+      map.set(key, { source, total: doc.amount, count: 1, currency: doc.currency });
     }
   }
 
-  return [...map.entries()]
-    .map(([source, data]) => ({ source, ...data }))
-    .sort((a, b) => b.total - a.total)
-    .slice(0, limit);
+  return [...map.values()].sort((a, b) => b.total - a.total).slice(0, limit);
 }
 
 /**
@@ -526,13 +596,13 @@ export function getTotalSpendingAndIncome(
   db: AnyOrama,
   filters?: { dateFrom?: string; dateTo?: string },
 ): {
+  currency: string;
   totalExpenses: number;
   totalIncome: number;
   net: number;
   expenseCount: number;
   incomeCount: number;
-  currency: string;
-} {
+}[] {
   const where: Record<string, unknown> = {};
   const dateWhere = buildDateWhere(filters?.dateFrom, filters?.dateTo);
   if (dateWhere) {
@@ -545,36 +615,40 @@ export function getTotalSpendingAndIncome(
     where: Object.keys(where).length > 0 ? where : undefined,
   }) as Results<TransactionSearchDoc>;
 
-  let totalExpenses = 0;
-  let totalIncome = 0;
-  let expenseCount = 0;
-  let incomeCount = 0;
-  let primaryCurrency = 'EUR';
-
+  const map = new Map<
+    string,
+    { totalExpenses: number; totalIncome: number; expenseCount: number; incomeCount: number }
+  >();
   for (const hit of results.hits) {
     const doc = hit.document;
-    if (doc.type === 'expense') {
-      totalExpenses += doc.amount;
-      expenseCount += 1;
-      primaryCurrency = doc.currency;
-    } else if (doc.type === 'income') {
-      totalIncome += doc.amount;
-      incomeCount += 1;
+    if (doc.type !== 'expense' && doc.type !== 'income') {
+      continue;
     }
+    const existing = map.get(doc.currency) ?? {
+      totalExpenses: 0,
+      totalIncome: 0,
+      expenseCount: 0,
+      incomeCount: 0,
+    };
+    if (doc.type === 'expense') {
+      existing.totalExpenses += doc.amount;
+      existing.expenseCount += 1;
+    } else {
+      existing.totalIncome += doc.amount;
+      existing.incomeCount += 1;
+    }
+    map.set(doc.currency, existing);
   }
 
-  return {
-    totalExpenses,
-    totalIncome,
-    net: totalIncome - totalExpenses,
-    expenseCount,
-    incomeCount,
-    currency: primaryCurrency,
-  };
+  return [...map.entries()].map(([currency, data]) => ({
+    currency,
+    ...data,
+    net: data.totalIncome - data.totalExpenses,
+  }));
 }
 
 /**
- * Get total document count in the index.
+ * Get the total document count in the index.
  */
 export function getIndexCount(db: AnyOrama): number {
   return count(db);

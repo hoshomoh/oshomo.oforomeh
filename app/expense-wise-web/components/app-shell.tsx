@@ -18,15 +18,17 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <DataProvider>
       <SearchProvider>
-        <TransactionFilterProvider>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>{children}</SidebarInset>
-          </SidebarProvider>
-          <GlobalSearch />
-          <ChatFAB />
-          <Toaster />
-        </TransactionFilterProvider>
+        <React.Suspense fallback={null}>
+          <TransactionFilterProvider>
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset>{children}</SidebarInset>
+            </SidebarProvider>
+            <GlobalSearch />
+            <ChatFAB />
+            <Toaster />
+          </TransactionFilterProvider>
+        </React.Suspense>
       </SearchProvider>
     </DataProvider>
   );

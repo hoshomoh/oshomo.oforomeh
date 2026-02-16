@@ -2,6 +2,8 @@ import { format, min, max } from 'date-fns';
 import type { ParsedTransaction, ParsedAccount, ParsedBudget, ParsedGroup } from '../types';
 import { formatCurrency } from '../format';
 import { getCategoryMeta } from '../constants';
+import { getPrimaryCurrency } from '../budget-utils';
+import { sanitizeForPrompt } from './sanitize';
 
 /**
  * Build a lightweight summary of the user's financial data for the LLM system prompt.
@@ -31,23 +33,28 @@ export function buildDataSummary(
   // Currencies
   const currencies = [...new Set(transactions.map((t) => t.currency))];
 
-  // Accounts
-  const accountSummary = accounts.map((a) => `${a.name} (${a.currency})`).join(', ');
+  // Accounts (sanitize names)
+  const accountSummary = accounts
+    .map((a) => `${sanitizeForPrompt(a.name)} (${a.currency})`)
+    .join(', ');
 
   // Budget
   const budget = budgets[0];
+  const budgetCurrency = getPrimaryCurrency(transactions);
   const budgetLine = budget
-    ? `Budget: ${formatCurrency(budget.totalAmount, 'EUR')}/month across ${Object.keys(budget.categories).length} categories.`
+    ? `Budget: ${formatCurrency(budget.totalAmount, budgetCurrency)}/month across ${Object.keys(budget.categories).length} categories.`
     : 'No budget configured.';
 
-  // Groups
+  // Groups (sanitize names)
   const groupLine =
-    groups.length > 0 ? `Groups: ${groups.map((g) => g.name).join(', ')}.` : 'No groups.';
+    groups.length > 0
+      ? `Groups: ${groups.map((g) => sanitizeForPrompt(g.name)).join(', ')}.`
+      : 'No groups.';
 
   // Categories present in the user's data (id → label mapping)
   const categoryIds = [...new Set(transactions.map((t) => t.categoryId).filter(Boolean))];
   const categoryLines = categoryIds
-    .map((id) => `  - "${id}" → ${getCategoryMeta(id).label}`)
+    .map((id) => `  - "${id}" → ${sanitizeForPrompt(getCategoryMeta(id).label)}`)
     .sort()
     .join('\n');
 

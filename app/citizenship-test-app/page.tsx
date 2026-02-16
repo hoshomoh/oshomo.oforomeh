@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { AppDetails } from '@/components/app-details';
+import { SiteFooter } from '@/components/site-footer';
 import { CITIZENSHIP_TEST_APP_URL, PUBLIC_URL } from '@/lib/constant';
 
 const features = [
@@ -185,6 +186,7 @@ export default function ExpenseWisePage() {
         description={data.description}
         links={installUrls}
       />
+      <SiteFooter className="mt-8" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

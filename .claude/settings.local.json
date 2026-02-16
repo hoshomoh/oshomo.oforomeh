@@ -5,7 +5,8 @@
       "WebFetch(domain:chat-sdk.dev)",
       "Bash(yarn tsc:*)",
       "WebFetch(domain:docs.orama.com)",
-      "Bash(npx shadcn@latest add command:*)"
+      "Bash(npx shadcn@latest add command:*)",
+      "WebFetch(domain:zod.dev)"
     ]
   }
 }

@@ -4,13 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "tsx app/expense-wise-web/scripts/fetch-exchange-rates.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "prettier:test": "prettier --check .",
     "prettier:fix": "prettier --write .",
-    "format-prettier": "yarn prettier:fix"
+    "format-prettier": "yarn prettier:fix",
+    "fetch-rates": "tsx app/expense-wise-web/scripts/fetch-exchange-rates.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.44",
@@ -34,6 +36,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.3.1",
     "embla-carousel-react": "^8.6.0",
     "idb": "^8.0.3",
     "lucide-react": "^0.564.0",

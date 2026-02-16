@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Header from '@/components/header';
+import { SiteFooter } from '@/components/site-footer';
 import type { WithContext, Article } from 'schema-dts';
 
 import { CONTACT_EMAIL, PRIVACY_POLICY_URL, PUBLIC_URL } from '@/lib/constant';
@@ -201,6 +202,7 @@ export default function PrivacyPolicyPage() {
           </div>
         </div>
       </div>
+      <SiteFooter className="mt-8" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

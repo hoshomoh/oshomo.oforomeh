@@ -4,6 +4,7 @@ import type { WithContext, WebPage, SoftwareApplication, FAQPage } from 'schema-
 import { Wallet, PlusCircle, Layers, BarChart3, Trash2, Moon, Languages } from 'lucide-react';
 
 import { AppDetails } from '@/components/app-details';
+import { SiteFooter } from '@/components/site-footer';
 import { EXPENSE_WISE_URL, PUBLIC_URL } from '@/lib/constant';
 
 const features = [
@@ -216,6 +217,7 @@ export default function ExpenseWisePage() {
         description={data.description}
         links={installUrls}
       />
+      <SiteFooter className="mt-8" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

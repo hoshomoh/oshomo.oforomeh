@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useData } from './context/data-context';
 import { useFilters } from './hooks/use-filters';
 import { useDashboardStats } from './hooks/use-dashboard-stats';
+import { useExchangeRates } from './hooks/use-exchange-rates';
 import { PageHeader } from './components/page-header';
 import { FiltersPanel } from './components/filters-panel';
 import SummaryCards from './components/summary-cards';
@@ -40,6 +41,7 @@ const TopCategoriesChart = dynamic(
 
 export default function ExpenseWiseWebPage() {
   const { transactions, accounts, budgets, groups, hasData, isLoading, refetch } = useData();
+  const { rates: exchangeRates } = useExchangeRates();
 
   const currencies = React.useMemo(
     () => [...new Set(transactions.map((t) => t.currency))],
@@ -48,7 +50,7 @@ export default function ExpenseWiseWebPage() {
   const { filters, updateFilters, filteredTransactions } = useFilters(transactions, accounts);
   const handleImportComplete = React.useCallback(() => refetch(), [refetch]);
 
-  const stats = useDashboardStats(filteredTransactions, accounts, budgets[0], filters.dateRange);
+  const stats = useDashboardStats(transactions, accounts, budgets[0], filters, exchangeRates);
 
   const pieChartData = React.useMemo(
     () =>
@@ -86,43 +88,47 @@ export default function ExpenseWiseWebPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex flex-col h-full">
       <PageHeader title="Dashboard" description="Overview of your financial data" />
 
-      <FiltersPanel
-        filters={filters}
-        onFilterChange={updateFilters}
-        accounts={accounts}
-        currencies={currencies}
-        groups={groups}
-        transactions={transactions}
-      />
+      <div className="flex-1 overflow-auto p-6 space-y-6">
+        <FiltersPanel
+          filters={filters}
+          onFilterChange={updateFilters}
+          accounts={accounts}
+          currencies={currencies}
+          groups={groups}
+          transactions={transactions}
+        />
 
-      <SummaryCards
-        totalIncome={stats.totalIncome}
-        totalExpenses={stats.totalExpenses}
-        netBalance={stats.netBalance}
-        transactionCount={stats.transactionCount}
-        prevMonthIncome={stats.prevMonthTotalIncome}
-        prevMonthExpenses={stats.prevMonthTotalExpenses}
-        currency={stats.primaryCurrency}
-      />
+        <SummaryCards
+          totalIncome={stats.totalIncome}
+          totalExpenses={stats.totalExpenses}
+          netBalance={stats.netBalance}
+          totalBalance={stats.totalBalance}
+          transactionCount={stats.transactionCount}
+          prevMonthIncome={stats.prevMonthTotalIncome}
+          prevMonthExpenses={stats.prevMonthTotalExpenses}
+          comparisonLabel={stats.comparisonLabel}
+          currency={stats.primaryCurrency}
+        />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <CategoryPieChart data={pieChartData} />
-        <MonthlyTrendChart data={trendChartData} currency={stats.primaryCurrency} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <CategoryPieChart data={pieChartData} />
+          <MonthlyTrendChart data={trendChartData} currency={stats.primaryCurrency} />
+        </div>
+
+        <TopCategoriesChart data={stats.topCategories} currency={stats.primaryCurrency} />
+
+        <IncomeExpenseBarChart data={stats.monthlyData} currency={stats.primaryCurrency} />
+
+        <TransactionsTable
+          transactions={filteredTransactions}
+          accounts={accounts}
+          pageSize={10}
+          showViewAll
+        />
       </div>
-
-      <TopCategoriesChart data={stats.topCategories} currency={stats.primaryCurrency} />
-
-      <IncomeExpenseBarChart data={stats.monthlyData} currency={stats.primaryCurrency} />
-
-      <TransactionsTable
-        transactions={filteredTransactions}
-        accounts={accounts}
-        pageSize={10}
-        showViewAll
-      />
     </div>
   );
 }

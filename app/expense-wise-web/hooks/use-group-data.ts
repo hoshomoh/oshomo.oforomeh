@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { compareDesc } from 'date-fns';
 import { TransactionType } from '../lib/types';
+import { convertCurrency } from '../lib/currency-conversion';
+import { getPrimaryCurrency } from '../lib/budget-utils';
+import { useExchangeRates } from './use-exchange-rates';
 import type { ParsedGroup, ParsedTransaction, Currency } from '../lib/types';
 
 type GroupDataItem = {
@@ -14,6 +17,7 @@ export function useGroupData(
   groups: ParsedGroup[],
   transactions: ParsedTransaction[],
 ): { groupData: GroupDataItem[] } {
+  const { rates: exchangeRates } = useExchangeRates();
   const sortedGroups = React.useMemo(
     () => [...groups].sort((a, b) => a.name.localeCompare(b.name)),
     [groups],
@@ -24,10 +28,15 @@ export function useGroupData(
       const groupTransactions = transactions
         .filter((tx) => tx.groupId === group.id)
         .sort((a, b) => compareDesc(a.date, b.date));
+      const primaryCurrency = getPrimaryCurrency(groupTransactions);
       const totalExpenses = groupTransactions
         .filter((tx) => tx.type === TransactionType.EXPENSE)
-        .reduce((sum, tx) => sum + tx.amount, 0);
-      const primaryCurrency = groupTransactions.length > 0 ? groupTransactions[0].currency : 'EUR';
+        .reduce((sum, tx) => {
+          if (tx.currency === primaryCurrency || !exchangeRates) {
+            return sum + tx.amount;
+          }
+          return sum + convertCurrency(tx.amount, tx.currency, primaryCurrency, exchangeRates);
+        }, 0);
 
       return {
         group,
@@ -36,7 +45,7 @@ export function useGroupData(
         currency: primaryCurrency,
       };
     });
-  }, [sortedGroups, transactions]);
+  }, [sortedGroups, transactions, exchangeRates]);
 
   return { groupData };
 }

@@ -53,7 +53,8 @@ export function applyDatePresetSync(
   next: DashboardFilters,
   partial: Partial<DashboardFilters>,
 ): DashboardFilters {
-  if (partial.datePreset && partial.datePreset !== 'custom') {
+  // If both datePreset and dateRange are provided, dateRange wins (more specific)
+  if (partial.datePreset && partial.datePreset !== 'custom' && !partial.dateRange) {
     next.dateRange = getDateRangeForPreset(partial.datePreset);
   }
   if (partial.dateRange) {

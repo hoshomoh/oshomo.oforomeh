@@ -41,8 +41,13 @@ export const FiltersPanel = React.memo(function FiltersPanel({
   groups,
   transactions,
 }: FiltersPanelProps) {
-  const { filteredAccounts, filteredGroups, handleCurrencyChange, handleAccountChange } =
-    useFilteredOptions({ filters, onFilterChange, accounts, transactions, groups });
+  const {
+    filteredAccounts,
+    filteredGroups,
+    handleCurrencyChange,
+    handleAccountChange,
+    handleGroupChange,
+  } = useFilteredOptions({ filters, onFilterChange, accounts, transactions, groups });
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -145,10 +150,7 @@ export const FiltersPanel = React.memo(function FiltersPanel({
 
       {/* Group filter */}
       {filteredGroups && filteredGroups.length > 0 && (
-        <Select
-          value={filters.groupId}
-          onValueChange={(value: string) => onFilterChange({ groupId: value })}
-        >
+        <Select value={filters.groupId} onValueChange={handleGroupChange}>
           <SelectTrigger className="w-full sm:w-[160px]" size="sm">
             <SelectValue placeholder="Group" />
           </SelectTrigger>

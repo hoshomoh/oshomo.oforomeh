@@ -1,11 +1,13 @@
 import { startOfMonth, endOfMonth, subMonths, isWithinInterval, format, addMonths } from 'date-fns';
 import { parseMonthKey } from './date';
+import { convertCurrency } from './currency-conversion';
 import type {
   DateRangePreset,
   ParsedBudget,
   ParsedTransaction,
   TransactionType,
   Currency,
+  ExchangeRates,
 } from './types';
 
 export const BUDGET_PRESETS: Record<string, string> = {
@@ -72,12 +74,22 @@ export function computeMonthlyBudgets(
   budget: ParsedBudget,
   dateRange: { from: Date; to: Date },
   primaryCurrency: Currency,
+  exchangeRates: ExchangeRates | null,
 ): MonthBudgetData[] {
-  const filtered = transactions.filter(
-    (tx) =>
-      tx.currency === primaryCurrency &&
-      isWithinInterval(tx.date, { start: dateRange.from, end: dateRange.to }),
+  const filtered = transactions.filter((tx) =>
+    isWithinInterval(tx.date, { start: dateRange.from, end: dateRange.to }),
   );
+
+  // Helper to convert amount to primary (budget) currency
+  const toBudgetCurrency = (amount: number, fromCurrency: Currency): number => {
+    if (fromCurrency === primaryCurrency) {
+      return amount;
+    }
+    if (!exchangeRates) {
+      return 0;
+    }
+    return convertCurrency(amount, fromCurrency, primaryCurrency, exchangeRates);
+  };
 
   // Build list of months in range, up to current month
   const now = new Date();
@@ -105,7 +117,8 @@ export function computeMonthlyBudgets(
     const key = format(tx.date, 'yyyy-MM');
     const bucket = monthExpenses.get(key);
     if (bucket) {
-      bucket[tx.categoryId] = (bucket[tx.categoryId] ?? 0) + tx.amount;
+      const converted = toBudgetCurrency(tx.amount, tx.currency);
+      bucket[tx.categoryId] = (bucket[tx.categoryId] ?? 0) + converted;
     }
   }
 

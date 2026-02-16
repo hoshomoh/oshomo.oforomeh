@@ -22,18 +22,37 @@ export function useFilteredOptions({
     return accounts.filter((a) => a.currency === filters.currency);
   }, [accounts, filters.currency]);
 
-  // Filter groups to those that have transactions in the selected currency
+  // Filter groups to those that have transactions matching selected filters
   const filteredGroups = React.useMemo(() => {
-    if (!groups || filters.currency === 'all' || !transactions) {
+    if (!groups || !transactions) {
       return groups;
     }
-    const groupIdsWithCurrency = new Set(
+
+    // If no filters are active, show all groups
+    if (filters.currency === 'all' && filters.accountId === 'all') {
+      return groups;
+    }
+
+    // Find groups that have transactions matching the active filters
+    const relevantGroupIds = new Set(
       transactions
-        .filter((t) => t.currency === filters.currency && t.groupId)
+        .filter((t) => {
+          if (!t.groupId) {
+            return false;
+          }
+          if (filters.currency !== 'all' && t.currency !== filters.currency) {
+            return false;
+          }
+          if (filters.accountId !== 'all' && t.accountId !== filters.accountId) {
+            return false;
+          }
+          return true;
+        })
         .map((t) => t.groupId),
     );
-    return groups.filter((g) => groupIdsWithCurrency.has(g.id));
-  }, [groups, filters.currency, transactions]);
+
+    return groups.filter((g) => relevantGroupIds.has(g.id));
+  }, [groups, filters.currency, filters.accountId, transactions]);
 
   // When currency changes, reset account/group if they're no longer valid
   const handleCurrencyChange = React.useCallback(
@@ -58,23 +77,57 @@ export function useFilteredOptions({
     [accounts, filters.accountId, filters.groupId, onFilterChange, transactions],
   );
 
-  // When account changes, auto-set currency to match
+  // When account changes, auto-set currency to match and reset group if invalid
   const handleAccountChange = React.useCallback(
     (value: string) => {
+      const updates: Partial<DashboardFilters> = { accountId: value };
+
       if (value === 'all') {
-        onFilterChange({ accountId: value });
+        onFilterChange(updates);
         return;
       }
+
       const account = accounts.find((a) => a.id === value);
-      if (account && filters.currency !== 'all' && account.currency !== filters.currency) {
-        onFilterChange({ accountId: value, currency: account.currency });
-      } else if (account && filters.currency === 'all') {
-        onFilterChange({ accountId: value, currency: account.currency });
-      } else {
-        onFilterChange({ accountId: value });
+      if (!account) {
+        onFilterChange(updates);
+        return;
       }
+
+      // Auto-set currency to match account
+      if (filters.currency !== 'all' && account.currency !== filters.currency) {
+        updates.currency = account.currency;
+      } else if (filters.currency === 'all') {
+        updates.currency = account.currency;
+      }
+
+      // Reset group if it has no transactions from this account
+      if (filters.groupId !== 'all' && transactions) {
+        const hasGroupTxFromAccount = transactions.some(
+          (t) => t.groupId === filters.groupId && t.accountId === value,
+        );
+        if (!hasGroupTxFromAccount) {
+          updates.groupId = 'all';
+        }
+      }
+
+      onFilterChange(updates);
     },
-    [accounts, filters.currency, onFilterChange],
+    [accounts, filters.currency, filters.groupId, onFilterChange, transactions],
+  );
+
+  // When group changes, auto-set date to all-time to see all group transactions
+  const handleGroupChange = React.useCallback(
+    (value: string) => {
+      const updates: Partial<DashboardFilters> = { groupId: value };
+
+      // When selecting a specific group, set date to all-time
+      if (value !== 'all') {
+        updates.datePreset = 'all-time';
+      }
+
+      onFilterChange(updates);
+    },
+    [onFilterChange],
   );
 
   return {
@@ -82,5 +135,6 @@ export function useFilteredOptions({
     filteredGroups,
     handleCurrencyChange,
     handleAccountChange,
+    handleGroupChange,
   };
 }

@@ -23,6 +23,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarFooter,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 
@@ -61,6 +62,13 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <Sidebar>
@@ -68,6 +76,7 @@ export function AppSidebar() {
         <Link
           href="/expense-wise-web"
           className="flex items-center gap-2 px-2 py-1 hover:opacity-80 transition-opacity"
+          onClick={handleNavClick}
         >
           <Wallet className="size-5 text-primary" />
           <span className="text-lg font-semibold">Expense-Wise</span>
@@ -103,7 +112,7 @@ export function AppSidebar() {
                     }
                     tooltip={item.label}
                   >
-                    <Link href={item.href}>
+                    <Link href={item.href} onClick={handleNavClick}>
                       <item.icon />
                       <span>{item.label}</span>
                     </Link>
@@ -117,7 +126,7 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/">
+          <Link href="/" onClick={handleNavClick}>
             <Home className="size-4" />
             <span>Back to Website</span>
           </Link>

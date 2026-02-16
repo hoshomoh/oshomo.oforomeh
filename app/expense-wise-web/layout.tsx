@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import { AppShell } from './components/app-shell';
+import { SiteFooter } from '@/components/site-footer';
 
 export const metadata: Metadata = {
   title: 'Expense-Wise Web | Dashboard',
@@ -9,5 +10,10 @@ export const metadata: Metadata = {
 };
 
 export default function ExpenseWiseWebLayout({ children }: { children: React.ReactNode }) {
-  return <AppShell>{children}</AppShell>;
+  return (
+    <>
+      <AppShell>{children}</AppShell>
+      <SiteFooter className="mt-8" />
+    </>
+  );
 }

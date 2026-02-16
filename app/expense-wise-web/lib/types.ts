@@ -324,6 +324,15 @@ export type DashboardFilters = {
 };
 
 // ============================================================
+// Exchange rates (loaded from build-time JSON)
+// ============================================================
+export type ExchangeRates = {
+  base: string;
+  date: string;
+  rates: Record<string, number>;
+};
+
+// ============================================================
 // App metadata (stored in IndexedDB)
 // ============================================================
 export type DataSource = 'user' | 'sample';

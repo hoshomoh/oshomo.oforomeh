@@ -16,6 +16,7 @@ import {
 } from '../search-engine';
 import type { ParsedAccount, ParsedBudget, ParsedGroup } from '../types';
 import { formatCurrency } from '../format';
+import { sanitizeForPrompt } from './sanitize';
 
 type ToolContext = {
   searchIndex: AnyOrama;
@@ -30,9 +31,13 @@ type ToolContext = {
  */
 export function executeToolCall(
   toolName: string,
-  args: Record<string, unknown>,
+  rawArgs: Record<string, unknown>,
   ctx: ToolContext,
 ): string {
+  // Note: Tool input validation is handled by AI SDK before this point
+  // We'll use the args directly as they've already been validated
+  const args = rawArgs;
+
   switch (toolName) {
     case 'searchTransactions': {
       const filters: SearchFilters = {};
@@ -65,10 +70,13 @@ export function executeToolCall(
 
       const lines = results.hits.map((hit) => {
         const d = hit.document;
-        return `- ${d.date} | ${d.type.toUpperCase()} | ${d.categoryLabel} | ${d.description || 'No description'} | ${formatCurrency(d.amount, d.currency)} | Account: ${d.accountName}${d.groupName ? ` | Group: ${d.groupName}` : ''}`;
+        const description = sanitizeForPrompt(d.description || 'No description');
+        const accountName = sanitizeForPrompt(d.accountName);
+        const groupName = d.groupName ? sanitizeForPrompt(d.groupName) : '';
+        return `- ${d.date} | ${d.type.toUpperCase()} | ${d.categoryLabel} | ${description} | ${formatCurrency(d.amount, d.currency)} | Account: ${accountName}${groupName ? ` | Group: ${groupName}` : ''}`;
       });
 
-      return `Found ${results.count} transaction(s)${results.count > results.hits.length ? ` (showing first ${results.hits.length})` : ''}:\n${lines.join('\n')}\n\nDisplay these using the TransactionsTable component with transactions: [{date, description, category, amount, type, currency}]. IMPORTANT: Use the EXACT description text from each transaction above — do not paraphrase or modify descriptions.`;
+      return `Found ${results.count} transaction(s)${results.count > results.hits.length ? ` (showing first ${results.hits.length})` : ''}:\n${lines.join('\n')}`;
     }
 
     case 'getSpendingByCategory': {
@@ -90,6 +98,33 @@ export function executeToolCall(
         return 'No expense data found for the specified period.';
       }
 
+      // Check for currency mixing
+      const currencies = new Set(categories.map((c) => c.currency));
+      if (currencies.size > 1) {
+        // Group by currency and show separate totals
+        const byCurrency = new Map<string, { total: number; categories: typeof categories }>();
+        for (const cat of categories) {
+          const existing = byCurrency.get(cat.currency);
+          if (existing) {
+            existing.total += cat.total;
+            existing.categories.push(cat);
+          } else {
+            byCurrency.set(cat.currency, { total: cat.total, categories: [cat] });
+          }
+        }
+
+        const currencyLines = Array.from(byCurrency.entries()).map(([currency, data]) => {
+          const catLines = data.categories.map(
+            (c) =>
+              `  - ${c.categoryLabel}: ${formatCurrency(c.total, c.currency)} (${((c.total / data.total) * 100).toFixed(1)}%)`,
+          );
+          return `${currency} (total: ${formatCurrency(data.total, currency)}):\n${catLines.join('\n')}`;
+        });
+
+        return `Spending by category across multiple currencies (${Array.from(currencies).join(', ')}):\n\n${currencyLines.join('\n\n')}`;
+      }
+
+      // Single currency - show total
       const total = categories.reduce((s, c) => s + c.total, 0);
       const primaryCurrency = categories[0].currency;
       const lines = categories.map(
@@ -107,12 +142,33 @@ export function executeToolCall(
         return 'No monthly data available.';
       }
 
-      const lines = trend.map(
-        (m) =>
-          `- ${m.month}: Income ${formatCurrency(m.income, m.currency)}, Expenses ${formatCurrency(m.expenses, m.currency)}, Net ${formatCurrency(m.income - m.expenses, m.currency)}`,
-      );
+      const currencies = [...new Set(trend.map((m) => m.currency))];
 
-      return `Monthly income/expense trend:\n${lines.join('\n')}`;
+      if (currencies.length === 1) {
+        const lines = trend.map(
+          (m) =>
+            `- ${m.month}: Income ${formatCurrency(m.income, m.currency)}, Expenses ${formatCurrency(m.expenses, m.currency)}, Net ${formatCurrency(m.income - m.expenses, m.currency)}`,
+        );
+        return `Monthly income/expense trend (${currencies[0]}):\n${lines.join('\n')}`;
+      }
+
+      // Multi-currency: group by currency for clarity
+      const byCurrency = new Map<string, typeof trend>();
+      for (const m of trend) {
+        const existing = byCurrency.get(m.currency) ?? [];
+        existing.push(m);
+        byCurrency.set(m.currency, existing);
+      }
+
+      const sections = [...byCurrency.entries()].map(([currency, months]) => {
+        const lines = months.map(
+          (m) =>
+            `- ${m.month}: Income ${formatCurrency(m.income, currency)}, Expenses ${formatCurrency(m.expenses, currency)}, Net ${formatCurrency(m.income - m.expenses, currency)}`,
+        );
+        return `${currency}:\n${lines.join('\n')}`;
+      });
+
+      return `Monthly income/expense trend across ${currencies.length} currencies:\n\n${sections.join('\n\n')}`;
     }
 
     case 'getAccountSummary': {
@@ -157,10 +213,24 @@ export function executeToolCall(
         return 'No group expense data found.';
       }
 
-      const lines = groupExpenses.map(
-        (g) =>
-          `- [id: ${g.groupId}] ${g.groupName}: ${g.transactionCount} transactions, Total ${formatCurrency(g.total, g.currency)}`,
-      );
+      // Group entries by groupId since a group can have expenses in multiple currencies
+      const byGroup = new Map<string, typeof groupExpenses>();
+      for (const g of groupExpenses) {
+        const existing = byGroup.get(g.groupId) ?? [];
+        existing.push(g);
+        byGroup.set(g.groupId, existing);
+      }
+
+      const lines = [...byGroup.entries()].map(([, entries]) => {
+        const name = entries[0].groupName;
+        const id = entries[0].groupId;
+        const totalCount = entries.reduce((s, e) => s + e.transactionCount, 0);
+        if (entries.length === 1) {
+          return `- [id: ${id}] ${name}: ${totalCount} transactions, Total ${formatCurrency(entries[0].total, entries[0].currency)}`;
+        }
+        const currencyParts = entries.map((e) => formatCurrency(e.total, e.currency)).join(' + ');
+        return `- [id: ${id}] ${name}: ${totalCount} transactions, Total ${currencyParts}`;
+      });
 
       return `Group expenses:\n${lines.join('\n')}`;
     }
@@ -221,13 +291,21 @@ export function executeToolCall(
         return 'No expenses found for the specified period.';
       }
 
-      const total = top.reduce((s, d) => s + d.amount, 0);
+      // Calculate totals per currency to avoid mixing
+      const totalsByCurrency = new Map<string, number>();
+      for (const d of top) {
+        totalsByCurrency.set(d.currency, (totalsByCurrency.get(d.currency) ?? 0) + d.amount);
+      }
+      const totalLabel = [...totalsByCurrency.entries()]
+        .map(([currency, total]) => formatCurrency(total, currency))
+        .join(' + ');
+
       const lines = top.map(
         (d, i) =>
           `${i + 1}. ${d.date} | ${d.categoryLabel} | ${d.description || 'No description'} | ${formatCurrency(d.amount, d.currency)} | Account: ${d.accountName}`,
       );
 
-      return `Top ${top.length} expense(s) (total: ${formatCurrency(total, top[0].currency)}):\n${lines.join('\n')}\n\nDisplay these using the TransactionsTable component with transactions: [{date, description, category, amount, type, currency}]. IMPORTANT: Use the EXACT description text from each transaction above — do not paraphrase or modify descriptions.`;
+      return `Top ${top.length} expense(s) (total: ${totalLabel}):\n${lines.join('\n')}\n\nDisplay these using the TransactionsTable component with transactions: [{date, description, category, amount, type, currency}]. IMPORTANT: Use the EXACT description text from each transaction above — do not paraphrase or modify descriptions.`;
     }
 
     case 'getIncomeBySource': {
@@ -244,13 +322,35 @@ export function executeToolCall(
         return 'No income data found for the specified period.';
       }
 
-      const total = sources.reduce((s, src) => s + src.total, 0);
-      const lines = sources.map(
-        (src) =>
-          `- ${src.source}: ${formatCurrency(src.total, src.currency)} (${src.count} transaction${src.count > 1 ? 's' : ''}, ${((src.total / total) * 100).toFixed(1)}%)`,
-      );
+      const currencies = [...new Set(sources.map((s) => s.currency))];
 
-      return `Income by source (total: ${formatCurrency(total, sources[0].currency)}):\n${lines.join('\n')}`;
+      if (currencies.length === 1) {
+        const total = sources.reduce((s, src) => s + src.total, 0);
+        const lines = sources.map(
+          (src) =>
+            `- ${src.source}: ${formatCurrency(src.total, src.currency)} (${src.count} transaction${src.count > 1 ? 's' : ''}, ${((src.total / total) * 100).toFixed(1)}%)`,
+        );
+        return `Income by source (total: ${formatCurrency(total, currencies[0])}):\n${lines.join('\n')}`;
+      }
+
+      // Multi-currency: group by currency
+      const byCurrency = new Map<string, typeof sources>();
+      for (const src of sources) {
+        const existing = byCurrency.get(src.currency) ?? [];
+        existing.push(src);
+        byCurrency.set(src.currency, existing);
+      }
+
+      const sections = [...byCurrency.entries()].map(([currency, currSources]) => {
+        const total = currSources.reduce((s, src) => s + src.total, 0);
+        const lines = currSources.map(
+          (src) =>
+            `- ${src.source}: ${formatCurrency(src.total, currency)} (${src.count} transaction${src.count > 1 ? 's' : ''}, ${((src.total / total) * 100).toFixed(1)}%)`,
+        );
+        return `${currency} (total: ${formatCurrency(total, currency)}):\n${lines.join('\n')}`;
+      });
+
+      return `Income by source across ${currencies.length} currencies:\n\n${sections.join('\n\n')}`;
     }
 
     case 'getBalancesByCurrency': {
@@ -276,6 +376,10 @@ export function executeToolCall(
         dateTo: args.dateTo as string | undefined,
       });
 
+      if (totals.length === 0) {
+        return 'No transaction data found for the specified period.';
+      }
+
       const periodLabel =
         args.dateFrom && args.dateTo
           ? `from ${args.dateFrom} to ${args.dateTo}`
@@ -285,10 +389,23 @@ export function executeToolCall(
               ? `up to ${args.dateTo}`
               : 'all time';
 
-      return `Financial summary (${periodLabel}):
-- Total Income: ${formatCurrency(totals.totalIncome, totals.currency)} (${totals.incomeCount} transaction${totals.incomeCount !== 1 ? 's' : ''})
-- Total Expenses: ${formatCurrency(totals.totalExpenses, totals.currency)} (${totals.expenseCount} transaction${totals.expenseCount !== 1 ? 's' : ''})
-- Net: ${formatCurrency(totals.net, totals.currency)} ${totals.net >= 0 ? '(savings)' : '(deficit)'}`;
+      if (totals.length === 1) {
+        const t = totals[0];
+        return `Financial summary (${periodLabel}):
+- Total Income: ${formatCurrency(t.totalIncome, t.currency)} (${t.incomeCount} transaction${t.incomeCount !== 1 ? 's' : ''})
+- Total Expenses: ${formatCurrency(t.totalExpenses, t.currency)} (${t.expenseCount} transaction${t.expenseCount !== 1 ? 's' : ''})
+- Net: ${formatCurrency(t.net, t.currency)} ${t.net >= 0 ? '(savings)' : '(deficit)'}`;
+      }
+
+      const sections = totals.map(
+        (t) =>
+          `${t.currency}:
+- Income: ${formatCurrency(t.totalIncome, t.currency)} (${t.incomeCount} transaction${t.incomeCount !== 1 ? 's' : ''})
+- Expenses: ${formatCurrency(t.totalExpenses, t.currency)} (${t.expenseCount} transaction${t.expenseCount !== 1 ? 's' : ''})
+- Net: ${formatCurrency(t.net, t.currency)} ${t.net >= 0 ? '(savings)' : '(deficit)'}`,
+      );
+
+      return `Financial summary (${periodLabel}) across ${totals.length} currencies:\n\n${sections.join('\n\n')}`;
     }
 
     default:

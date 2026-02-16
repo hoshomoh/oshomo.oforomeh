@@ -76,7 +76,7 @@ function SingleMonthHero({
   ).length;
 
   return (
-    <div className="rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-6">
+    <div className="rounded-xl bg-linear-to-br from-primary/10 via-primary/5 to-transparent border p-6">
       <div className="flex flex-col sm:flex-row items-center gap-6">
         <CircularProgress percentage={stats.overallPercentage} size={100} />
         <div className="flex-1 text-center sm:text-left">
@@ -111,7 +111,7 @@ function SingleMonthHero({
         </div>
         <div className="text-3xl sm:text-4xl font-bold tabular-nums">
           {formatCurrency(Math.abs(remaining), currency)}
-          <p className="text-xs text-muted-foreground font-normal mt-1 text-center">
+          <p className="text-xs text-muted-foreground font-normal mt-1 text-right">
             {remaining >= 0 ? 'Remaining' : 'Over budget'}
           </p>
         </div>
@@ -174,19 +174,12 @@ function CategoryCards({
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {categories.map((item) => {
         const meta = getCategoryMeta(item.categoryId);
-        const status = getStatusColor(item.percentage);
         const remaining = item.budgeted - item.actual;
 
         return (
-          <Card key={item.categoryId} className="overflow-hidden">
+          <Card key={item.categoryId} className="overflow-hidden py-0">
             <CardContent className="p-0">
-              <div className="h-1.5 w-full bg-muted/30">
-                <div
-                  className={cn('h-full transition-all rounded-r', status.bg)}
-                  style={{ width: `${Math.min(item.percentage, 100)}%` }}
-                />
-              </div>
-              <div className="p-4">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div
@@ -278,7 +271,7 @@ export default function BudgetsPage() {
       {/* Month filter */}
       <div className="flex flex-wrap items-center gap-2">
         <Select value={datePreset} onValueChange={(v) => setDatePreset(v as DateRangePreset)}>
-          <SelectTrigger className="w-full sm:w-[160px]" size="sm">
+          <SelectTrigger className="w-full sm:w-40" size="sm">
             <SelectValue placeholder="Period" />
           </SelectTrigger>
           <SelectContent>
@@ -292,7 +285,7 @@ export default function BudgetsPage() {
 
         {datePreset === 'custom' && (
           <Select value={customMonth} onValueChange={setCustomMonth}>
-            <SelectTrigger className="w-full sm:w-[200px]" size="sm">
+            <SelectTrigger className="w-full sm:w-50" size="sm">
               <SelectValue placeholder="Select month" />
             </SelectTrigger>
             <SelectContent>

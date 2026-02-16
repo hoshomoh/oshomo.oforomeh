@@ -23,6 +23,7 @@ type UseChatSessionReturn = {
   messages: UIMessage[];
   isLoading: boolean;
   error: Error | undefined;
+  setError: (error: Error | undefined) => void;
   loaded: boolean;
   scrollRef: React.RefObject<HTMLDivElement | null>;
   handleClear: () => void;
@@ -35,6 +36,7 @@ export function useChatSession({
   dataSummary,
 }: UseChatSessionParams): UseChatSessionReturn {
   const [input, setInput] = React.useState('');
+  const [customError, setCustomError] = React.useState<Error | undefined>(undefined);
   const { searchIndex } = useSearch();
   const { accounts, budgets, groups } = useData();
   const { initialMessages, loaded, saveMessages, clearMessages } = usePersistedChat();
@@ -130,7 +132,8 @@ export function useChatSession({
     setInput,
     messages: displayMessages,
     isLoading,
-    error,
+    error: customError || error,
+    setError: setCustomError,
     loaded,
     scrollRef,
     handleClear,

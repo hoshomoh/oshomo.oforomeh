@@ -1,9 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { WithContext, AboutPage as AboutPageSchema } from 'schema-dts';
 
 import Header from '@/components/header';
+import { SiteFooter } from '@/components/site-footer';
+import { getPictureOfTheDay } from '@/lib/picture-of-the-day';
 import {
   CITIZENSHIP_TEST_APP_URL,
   EXPENSE_WISE_URL,
@@ -166,11 +169,15 @@ const jsonLd: WithContext<AboutPageSchema> = {
   },
 };
 
-export default function AboutPage() {
+export const revalidate = 86400;
+
+export default async function AboutPage() {
+  const pictureOfTheDay = await getPictureOfTheDay();
+
   return (
     <main className="flex-1 flex flex-col">
-      <div className="w-full flex-1 font-mono flex p-8">
-        <div className="flex flex-col gap-12 w-[24rem] text-left">
+      <div className="w-full flex-1 font-mono flex">
+        <div className="flex flex-col gap-12 w-full md:w-[28rem] shrink-0 text-left p-8">
           <Header
             items={[
               { label: 'linkedin', href: socialLinks.linkedin, external: true },
@@ -214,8 +221,45 @@ export default function AboutPage() {
               })}
             </div>
           </div>
+
+          <SiteFooter className="mt-auto text-left" />
         </div>
       </div>
+
+      {/* Picture of the day — fixed to viewport, visible on lg+ */}
+      {pictureOfTheDay && (
+        <a
+          href={pictureOfTheDay.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden lg:block fixed inset-y-0 right-0 left-[28rem] z-10 overflow-hidden"
+        >
+          <Image
+            src={pictureOfTheDay.imageUrl}
+            alt={pictureOfTheDay.title}
+            fill
+            className="object-cover"
+            sizes="(min-width: 1024px) calc(100vw - 28rem)"
+            priority
+          />
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 pt-12">
+            <p className="text-white text-sm font-medium">{pictureOfTheDay.title}</p>
+            <p className="text-white/70 text-xs mt-1">
+              {pictureOfTheDay.credit && (
+                <>
+                  {pictureOfTheDay.creditUrl ? (
+                    <span className="underline">{pictureOfTheDay.credit}</span>
+                  ) : (
+                    pictureOfTheDay.credit
+                  )}
+                  {' · '}
+                </>
+              )}
+              {pictureOfTheDay.source}
+            </p>
+          </div>
+        </a>
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

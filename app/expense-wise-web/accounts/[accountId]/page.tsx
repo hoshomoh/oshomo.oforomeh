@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useData } from '../../context/data-context';
 import { useAccountDetail } from '../../hooks/use-account-detail';
+import { useExchangeRates } from '../../hooks/use-exchange-rates';
 import SummaryCards from '../../components/summary-cards';
 import { CategoryPieChart } from '../../components/charts/category-pie-chart';
 import { IncomeExpenseBarChart } from '../../components/charts/income-expense-bar-chart';
@@ -30,12 +31,14 @@ export default function AccountDetailPage() {
   const params = useParams();
   const accountId = params.accountId as string;
   const { transactions, accounts, budgets, hasData, isLoading } = useData();
+  const { rates: exchangeRates } = useExchangeRates();
 
   const { account, stats, balanceChartData, recentTransactions } = useAccountDetail(
     accountId,
     transactions,
     accounts,
     budgets,
+    exchangeRates,
   );
 
   if (isLoading) {
@@ -99,15 +102,15 @@ export default function AccountDetailPage() {
         </div>
       </div>
 
-      {/* Summary cards */}
+      {/* Summary cards — all-time stats for this account, no comparison badges */}
       <SummaryCards
         totalIncome={stats.totalIncome}
         totalExpenses={stats.totalExpenses}
         netBalance={stats.netBalance}
+        totalBalance={stats.totalBalance}
         transactionCount={stats.transactionCount}
-        prevMonthIncome={stats.prevMonthTotalIncome}
-        prevMonthExpenses={stats.prevMonthTotalExpenses}
         currency={account.currency}
+        showBalance={false}
       />
 
       {/* Balance over time chart */}

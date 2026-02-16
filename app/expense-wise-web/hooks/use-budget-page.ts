@@ -4,6 +4,7 @@ import { parseMonthKey } from '../lib/date';
 import type { DateRangePreset, ParsedBudget, ParsedTransaction, Currency } from '../lib/types';
 import { getBudgetDateRange, getPrimaryCurrency, computeMonthlyBudgets } from '../lib/budget-utils';
 import type { MonthBudgetData } from '../lib/budget-utils';
+import { useExchangeRates } from './use-exchange-rates';
 
 type AvailableMonth = {
   value: string;
@@ -25,6 +26,7 @@ export function useBudgetPage(
   transactions: ParsedTransaction[],
   budgets: ParsedBudget[],
 ): BudgetPageResult {
+  const { rates: exchangeRates } = useExchangeRates();
   const [datePreset, setDatePreset] = React.useState<DateRangePreset>('this-month');
   const [customMonth, setCustomMonth] = React.useState(() =>
     format(subMonths(new Date(), 2), 'yyyy-MM'),
@@ -67,8 +69,8 @@ export function useBudgetPage(
     if (!budget) {
       return [];
     }
-    return computeMonthlyBudgets(transactions, budget, dateRange, primaryCurrency);
-  }, [transactions, budget, dateRange, primaryCurrency]);
+    return computeMonthlyBudgets(transactions, budget, dateRange, primaryCurrency, exchangeRates);
+  }, [transactions, budget, dateRange, primaryCurrency, exchangeRates]);
 
   return {
     budget,

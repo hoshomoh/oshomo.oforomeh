@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
         pathname: '/posts/**',
       },
     ],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'apod.nasa.gov' },
+      { protocol: 'https', hostname: 'www.bing.com' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+    ],
   },
   async redirects() {
     return [
