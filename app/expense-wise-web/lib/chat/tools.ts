@@ -8,7 +8,7 @@ import { z } from 'zod';
 export const financialTools = {
   searchTransactions: tool({
     description:
-      'Search for transactions by keyword (description, category, account name) and/or filter by type, date range, category, account, or group. Returns matching transactions with amounts, dates, and categories.',
+      'Search for transactions by keyword (description, category, account name) and/or filter by type, date range, category, account, or group. Returns matching transactions with amounts, dates, and categories. Use specific filters rather than broad queries when the user asks about a particular time period, category, or account.',
     inputSchema: z.object({
       query: z
         .string()
@@ -82,7 +82,7 @@ export const financialTools = {
 
   getRecentTransactions: tool({
     description:
-      'Get the most recent transactions sorted by date (newest first). Use this when the user asks "what did I buy recently?" or "show my latest transactions".',
+      'Get the most recent transactions sorted by date (newest first). Prefer this over searchTransactions when the user says "recently", "latest", or "last few". Returns: [{date, type, categoryLabel, description, amount, currency, accountName}].',
     inputSchema: z.object({
       type: z
         .enum(['expense', 'income', 'transfer'])
@@ -98,7 +98,7 @@ export const financialTools = {
 
   getTopExpenses: tool({
     description:
-      'Get the largest expenses sorted by amount (highest first). Use this when the user asks "what were my biggest expenses?" or "show my largest purchases".',
+      'Get the largest expenses sorted by amount (highest first). Prefer this over searchTransactions for "biggest", "largest", or "most expensive" queries. Returns: [{date, categoryLabel, description, amount, currency, accountName}].',
     inputSchema: z.object({
       limit: z
         .number()
@@ -112,7 +112,7 @@ export const financialTools = {
 
   getIncomeBySource: tool({
     description:
-      'Get income grouped by source/description with totals. Use this when the user asks "where does my income come from?" or "show my income breakdown".',
+      'Get income grouped by source/description with totals and percentages. Prefer this over searchTransactions + manual grouping for income analysis. Returns: [{source, total, count, currency, percentage}].',
     inputSchema: z.object({
       dateFrom: z.string().optional().describe('Filter from this date (YYYY-MM-DD)'),
       dateTo: z.string().optional().describe('Filter up to this date (YYYY-MM-DD)'),
@@ -122,13 +122,13 @@ export const financialTools = {
 
   getBalancesByCurrency: tool({
     description:
-      'Get account balances grouped by currency with subtotals per currency. Use this when the user asks "how much money do I have?" or "what is my total balance?". Never sum across different currencies.',
+      'Get account balances grouped by currency with subtotals per currency. Prefer this over getAccountSummary for "how much money do I have?" or total balance queries. Never sum across different currencies — use convertCurrency first if user wants a single-currency total.',
     inputSchema: z.object({}),
   }),
 
   getTotalSpendingAndIncome: tool({
     description:
-      'Get total expenses, total income, net savings, and transaction counts for a date range. Use this when the user asks "how much did I spend this month?" or "how much did I earn?" or "what are my savings?".',
+      'Get total expenses, total income, net savings, and transaction counts for a date range in one call. Prefer this for "how much did I spend/earn?" or "what are my savings?" queries. Returns: [{totalIncome, totalExpenses, net, incomeCount, expenseCount, currency}].',
     inputSchema: z.object({
       dateFrom: z.string().optional().describe('Filter from this date (YYYY-MM-DD)'),
       dateTo: z.string().optional().describe('Filter up to this date (YYYY-MM-DD)'),

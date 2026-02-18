@@ -5,12 +5,14 @@ export function useFilteredOptions({
   filters,
   onFilterChange,
   accounts,
+  currencies,
   transactions,
   groups,
 }: {
   filters: DashboardFilters;
   onFilterChange: (filters: Partial<DashboardFilters>) => void;
   accounts: ParsedAccount[];
+  currencies: string[];
   transactions?: ParsedTransaction[];
   groups?: ParsedGroup[];
 }) {
@@ -21,6 +23,15 @@ export function useFilteredOptions({
     }
     return accounts.filter((a) => a.currency === filters.currency);
   }, [accounts, filters.currency]);
+
+  // Filter currencies by selected account
+  const filteredCurrencies = React.useMemo(() => {
+    if (filters.accountId === 'all') {
+      return currencies;
+    }
+    const account = accounts.find((a) => a.id === filters.accountId);
+    return account ? [account.currency] : currencies;
+  }, [accounts, currencies, filters.accountId]);
 
   // Filter groups to those that have transactions matching selected filters
   const filteredGroups = React.useMemo(() => {
@@ -77,7 +88,7 @@ export function useFilteredOptions({
     [accounts, filters.accountId, filters.groupId, onFilterChange, transactions],
   );
 
-  // When account changes, reset group if it has no transactions from this account
+  // When account changes, sync currency and reset group if no longer valid
   const handleAccountChange = React.useCallback(
     (value: string) => {
       const updates: Partial<DashboardFilters> = { accountId: value };
@@ -85,6 +96,12 @@ export function useFilteredOptions({
       if (value === 'all') {
         onFilterChange(updates);
         return;
+      }
+
+      // Always sync currency to the selected account's currency
+      const selectedAccount = accounts.find((a) => a.id === value);
+      if (selectedAccount) {
+        updates.currency = selectedAccount.currency;
       }
 
       // Reset group if it has no transactions from this account
@@ -99,7 +116,7 @@ export function useFilteredOptions({
 
       onFilterChange(updates);
     },
-    [filters.groupId, onFilterChange, transactions],
+    [accounts, filters.groupId, onFilterChange, transactions],
   );
 
   // When group changes, auto-set date to all-time to see all group transactions
@@ -119,6 +136,7 @@ export function useFilteredOptions({
 
   return {
     filteredAccounts,
+    filteredCurrencies,
     filteredGroups,
     handleCurrencyChange,
     handleAccountChange,

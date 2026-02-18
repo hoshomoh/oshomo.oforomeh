@@ -126,7 +126,7 @@ export function executeToolCall(
           return `${currency} (total: ${formatCurrency(data.total, currency)}):\n${catLines.join('\n')}`;
         });
 
-        return `Spending by category across multiple currencies (${Array.from(currencies).join(', ')}):\n\n${currencyLines.join('\n\n')}`;
+        return `Spending by category across multiple currencies (${Array.from(currencies).join(', ')}):\n\n${currencyLines.join('\n\n')}\n\nVisualize: SummaryCard(s) per currency + CategoryPieChart per currency. Show separate charts for each currency.`;
       }
 
       // Single currency - show total
@@ -137,7 +137,7 @@ export function executeToolCall(
           `- ${c.categoryLabel}: ${formatCurrency(c.total, c.currency)} (${((c.total / total) * 100).toFixed(1)}%)`,
       );
 
-      return `Spending by category (total: ${formatCurrency(total, primaryCurrency)}):\n${lines.join('\n')}`;
+      return `Spending by category (total: ${formatCurrency(total, primaryCurrency)}):\n${lines.join('\n')}\n\nVisualize: SummaryCard (total) + CategoryPieChart. Pass currency="${primaryCurrency}".`;
     }
 
     case 'getMonthlyTrend': {
@@ -154,7 +154,7 @@ export function executeToolCall(
           (m) =>
             `- ${m.month}: Income ${formatCurrency(m.income, m.currency)}, Expenses ${formatCurrency(m.expenses, m.currency)}, Net ${formatCurrency(m.income - m.expenses, m.currency)}`,
         );
-        return `Monthly income/expense trend (${currencies[0]}):\n${lines.join('\n')}`;
+        return `Monthly income/expense trend (${currencies[0]}):\n${lines.join('\n')}\n\nVisualize: IncomeExpenseChart + SummaryCard (net savings for latest month).`;
       }
 
       // Multi-currency: group by currency for clarity
@@ -173,7 +173,7 @@ export function executeToolCall(
         return `${currency}:\n${lines.join('\n')}`;
       });
 
-      return `Monthly income/expense trend across ${currencies.length} currencies:\n\n${sections.join('\n\n')}`;
+      return `Monthly income/expense trend across ${currencies.length} currencies:\n\n${sections.join('\n\n')}\n\nVisualize: IncomeExpenseChart per currency + SummaryCard (net savings).`;
     }
 
     case 'getAccountSummary': {
@@ -188,7 +188,7 @@ export function executeToolCall(
           `- [id: ${a.id}] ${a.name} (${a.currency}, ${a.country}): Balance ${formatCurrency(a.balance, a.currency)}`,
       );
 
-      return `Accounts:\n${lines.join('\n')}`;
+      return `Accounts:\n${lines.join('\n')}\n\nVisualize: SummaryCard(s) per currency group + AccountsList.`;
     }
 
     case 'getBudgetStatus': {
@@ -204,7 +204,7 @@ export function executeToolCall(
           `- ${s.categoryLabel}: Budgeted ${formatCurrency(s.budgeted, s.currency)}, Spent ${formatCurrency(s.actual, s.currency)} (${s.percentage.toFixed(1)}%)${s.percentage > 100 ? ' ⚠️ OVER BUDGET' : ''}`,
       );
 
-      return `Budget status:\n${lines.join('\n')}`;
+      return `Budget status:\n${lines.join('\n')}\n\nVisualize: SummaryCard (overall % used) + BudgetComparisonChart. Call out over-budget categories.`;
     }
 
     case 'getGroupExpenses': {
@@ -237,7 +237,7 @@ export function executeToolCall(
         return `- [id: ${id}] ${name}: ${totalCount} transactions, Total ${currencyParts}`;
       });
 
-      return `Group expenses:\n${lines.join('\n')}`;
+      return `Group expenses:\n${lines.join('\n')}\n\nVisualize: SummaryCard (group count or total) + BarChart (group name as label, transaction count as value). For specific group detail, use the group ID with searchTransactions.`;
     }
 
     case 'getTransfersByAccount': {
@@ -335,7 +335,7 @@ export function executeToolCall(
           (src) =>
             `- ${src.source}: ${formatCurrency(src.total, src.currency)} (${src.count} transaction${src.count > 1 ? 's' : ''}, ${((src.total / total) * 100).toFixed(1)}%)`,
         );
-        return `Income by source (total: ${formatCurrency(total, currencies[0])}):\n${lines.join('\n')}`;
+        return `Income by source (total: ${formatCurrency(total, currencies[0])}):\n${lines.join('\n')}\n\nVisualize: SummaryCard (total income) + CategoryPieChart (sources as categories). Pass currency="${currencies[0]}".`;
       }
 
       // Multi-currency: group by currency
@@ -355,7 +355,7 @@ export function executeToolCall(
         return `${currency} (total: ${formatCurrency(total, currency)}):\n${lines.join('\n')}`;
       });
 
-      return `Income by source across ${currencies.length} currencies:\n\n${sections.join('\n\n')}`;
+      return `Income by source across ${currencies.length} currencies:\n\n${sections.join('\n\n')}\n\nVisualize: SummaryCard(s) per currency + CategoryPieChart per currency (sources as categories).`;
     }
 
     case 'getBalancesByCurrency': {
@@ -372,7 +372,7 @@ export function executeToolCall(
         return `${g.currency} — Total: ${formatCurrency(g.total, g.currency)}\n${accountLines}`;
       });
 
-      return `Balances by currency:\n${lines.join('\n\n')}`;
+      return `Balances by currency:\n${lines.join('\n\n')}\n\nVisualize: SummaryCard(s) per currency + AccountsList.`;
     }
 
     case 'getTotalSpendingAndIncome': {
@@ -399,7 +399,9 @@ export function executeToolCall(
         return `Financial summary (${periodLabel}):
 - Total Income: ${formatCurrency(t.totalIncome, t.currency)} (${t.incomeCount} transaction${t.incomeCount !== 1 ? 's' : ''})
 - Total Expenses: ${formatCurrency(t.totalExpenses, t.currency)} (${t.expenseCount} transaction${t.expenseCount !== 1 ? 's' : ''})
-- Net: ${formatCurrency(t.net, t.currency)} ${t.net >= 0 ? '(savings)' : '(deficit)'}`;
+- Net: ${formatCurrency(t.net, t.currency)} ${t.net >= 0 ? '(savings)' : '(deficit)'}
+
+Visualize: SummaryCard(s) for income, expenses, and net savings.`;
       }
 
       const sections = totals.map(
@@ -410,7 +412,7 @@ export function executeToolCall(
 - Net: ${formatCurrency(t.net, t.currency)} ${t.net >= 0 ? '(savings)' : '(deficit)'}`,
       );
 
-      return `Financial summary (${periodLabel}) across ${totals.length} currencies:\n\n${sections.join('\n\n')}`;
+      return `Financial summary (${periodLabel}) across ${totals.length} currencies:\n\n${sections.join('\n\n')}\n\nVisualize: SummaryCard(s) for income, expenses, and net per currency.`;
     }
 
     case 'convertCurrency': {

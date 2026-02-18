@@ -150,7 +150,13 @@ export function getChatCatalogPrompt(): string {
       'Put chart data arrays in /state and reference them with { "$state": "/path" } on the data prop.',
       'Keep the UI clean and information-dense — no excessive padding or empty space.',
       'Prefer combining a SummaryCard headline with a detail chart or table below it.',
-      'For SummaryCard, the value prop is a pre-formatted string like "€1,234.56", NOT a number.',
+      'For SummaryCard, the value prop MUST be a pre-formatted string like "€1,234.56" or "64 transactions", NEVER a raw number.',
+      'NEVER use markdown tables (| col | col |). Always use spec components for tabular data.',
+      'Limit to 4–5 components max per response to avoid overwhelming the user.',
+      'Do NOT emit spec with empty data arrays. If tools return no data, skip the spec entirely.',
+      'For SummaryCard trend: use "up"/"down" when comparing periods, omit otherwise.',
+      'Use BarChart instead of CategoryPieChart when there are more than 8 slices.',
+      'For TransactionsTable: use the EXACT description text returned by tools — do NOT paraphrase or modify descriptions.',
     ],
   });
 }

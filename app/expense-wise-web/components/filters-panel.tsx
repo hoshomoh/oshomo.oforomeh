@@ -43,11 +43,12 @@ export const FiltersPanel = React.memo(function FiltersPanel({
 }: FiltersPanelProps) {
   const {
     filteredAccounts,
+    filteredCurrencies,
     filteredGroups,
     handleCurrencyChange,
     handleAccountChange,
     handleGroupChange,
-  } = useFilteredOptions({ filters, onFilterChange, accounts, transactions, groups });
+  } = useFilteredOptions({ filters, onFilterChange, accounts, currencies, transactions, groups });
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -125,7 +126,7 @@ export const FiltersPanel = React.memo(function FiltersPanel({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Currencies</SelectItem>
-          {currencies.map((currency) => (
+          {filteredCurrencies.map((currency) => (
             <SelectItem key={currency} value={currency}>
               {currency}
             </SelectItem>
