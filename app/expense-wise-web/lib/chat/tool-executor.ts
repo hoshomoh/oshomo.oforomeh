@@ -14,15 +14,17 @@ import {
   getTotalSpendingAndIncome,
   type SearchFilters,
 } from '../search-engine';
-import type { ParsedAccount, ParsedBudget, ParsedGroup } from '../types';
+import type { ParsedAccount, ParsedBudget, ParsedGroup, ExchangeRates } from '../types';
 import { formatCurrency } from '../format';
 import { sanitizeForPrompt } from './sanitize';
+import { convertCurrency } from '../currency-conversion';
 
 type ToolContext = {
   searchIndex: AnyOrama;
   accounts: ParsedAccount[];
   budgets: ParsedBudget[];
   groups: ParsedGroup[];
+  exchangeRates: ExchangeRates | null;
 };
 
 /**
@@ -55,6 +57,9 @@ export function executeToolCall(
       }
       if (args.accountId) {
         filters.accountId = args.accountId as string;
+      }
+      if (args.groupId) {
+        filters.groupId = args.groupId as string;
       }
 
       const results = searchTransactions(
@@ -406,6 +411,41 @@ export function executeToolCall(
       );
 
       return `Financial summary (${periodLabel}) across ${totals.length} currencies:\n\n${sections.join('\n\n')}`;
+    }
+
+    case 'convertCurrency': {
+      const amount = args.amount as number;
+      const fromCurrency = (args.fromCurrency as string).toUpperCase();
+      const toCurrency = (args.toCurrency as string).toUpperCase();
+
+      if (!ctx.exchangeRates) {
+        return 'Exchange rates are not available at the moment. Please try again later.';
+      }
+
+      if (fromCurrency === toCurrency) {
+        return `No conversion needed: ${formatCurrency(amount, fromCurrency)}`;
+      }
+
+      const convertedAmount = convertCurrency(amount, fromCurrency, toCurrency, ctx.exchangeRates);
+
+      // Get the exchange rate for display
+      const base = ctx.exchangeRates.base.toUpperCase();
+      const fromRate = fromCurrency === base ? 1 : ctx.exchangeRates.rates[fromCurrency];
+      const toRate = toCurrency === base ? 1 : ctx.exchangeRates.rates[toCurrency];
+
+      if (!fromRate || !toRate) {
+        return `Unable to convert: Exchange rate not available for ${fromCurrency} or ${toCurrency}. Available currencies: ${Object.keys(ctx.exchangeRates.rates).join(', ')}`;
+      }
+
+      const rate = toRate / fromRate;
+      const rateDate = ctx.exchangeRates.date;
+
+      return `Converted ${formatCurrency(amount, fromCurrency)} to ${formatCurrency(convertedAmount, toCurrency)}
+
+Exchange rate: 1 ${fromCurrency} = ${rate.toFixed(4)} ${toCurrency}
+Rate date: ${rateDate}
+
+Note: Exchange rates are updated daily and may not reflect real-time market rates.`;
     }
 
     default:

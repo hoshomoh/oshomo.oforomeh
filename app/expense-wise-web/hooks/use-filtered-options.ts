@@ -77,7 +77,7 @@ export function useFilteredOptions({
     [accounts, filters.accountId, filters.groupId, onFilterChange, transactions],
   );
 
-  // When account changes, auto-set currency to match and reset group if invalid
+  // When account changes, reset group if it has no transactions from this account
   const handleAccountChange = React.useCallback(
     (value: string) => {
       const updates: Partial<DashboardFilters> = { accountId: value };
@@ -85,19 +85,6 @@ export function useFilteredOptions({
       if (value === 'all') {
         onFilterChange(updates);
         return;
-      }
-
-      const account = accounts.find((a) => a.id === value);
-      if (!account) {
-        onFilterChange(updates);
-        return;
-      }
-
-      // Auto-set currency to match account
-      if (filters.currency !== 'all' && account.currency !== filters.currency) {
-        updates.currency = account.currency;
-      } else if (filters.currency === 'all') {
-        updates.currency = account.currency;
       }
 
       // Reset group if it has no transactions from this account
@@ -112,7 +99,7 @@ export function useFilteredOptions({
 
       onFilterChange(updates);
     },
-    [accounts, filters.currency, filters.groupId, onFilterChange, transactions],
+    [filters.groupId, onFilterChange, transactions],
   );
 
   // When group changes, auto-set date to all-time to see all group transactions

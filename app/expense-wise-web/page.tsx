@@ -47,7 +47,7 @@ export default function ExpenseWiseWebPage() {
     () => [...new Set(transactions.map((t) => t.currency))],
     [transactions],
   );
-  const { filters, updateFilters, filteredTransactions } = useFilters(transactions, accounts);
+  const { filters, updateFilters, filteredTransactions } = useFilters(transactions);
   const handleImportComplete = React.useCallback(() => refetch(), [refetch]);
 
   const stats = useDashboardStats(transactions, accounts, budgets[0], filters, exchangeRates);

@@ -1,13 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import type {
-  DashboardFilters,
-  DateRangePreset,
-  ParsedTransaction,
-  ParsedAccount,
-  Currency,
-} from '../lib/types';
+import type { DashboardFilters, DateRangePreset, ParsedTransaction } from '../lib/types';
 import {
   getDateRangeForPreset,
   createDefaultFilters,
@@ -17,7 +11,6 @@ import { filterTransactions } from '../lib/filter-transactions';
 
 export function useFilters(
   transactions: ParsedTransaction[],
-  accounts: ParsedAccount[],
   initialOverrides?: Partial<DashboardFilters>,
 ) {
   const [filters, setFilters] = React.useState<DashboardFilters>(() => {
@@ -61,15 +54,6 @@ export function useFilters(
     setFilters(createDefaultFilters());
   }, []);
 
-  // Build an account-to-currency lookup for currency filtering
-  const accountCurrencyMap = React.useMemo(() => {
-    const map = new Map<string, Currency>();
-    for (const account of accounts) {
-      map.set(account.id, account.currency);
-    }
-    return map;
-  }, [accounts]);
-
   const filteredTransactions = React.useMemo(
     () => filterTransactions(transactions, filters),
     [transactions, filters],
@@ -82,6 +66,5 @@ export function useFilters(
     updateFilters,
     resetFilters,
     filteredTransactions,
-    accountCurrencyMap,
   };
 }

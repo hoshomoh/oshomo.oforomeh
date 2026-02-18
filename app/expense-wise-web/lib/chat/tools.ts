@@ -8,7 +8,7 @@ import { z } from 'zod';
 export const financialTools = {
   searchTransactions: tool({
     description:
-      'Search for transactions by keyword (description, category, account name). Returns matching transactions with amounts, dates, and categories.',
+      'Search for transactions by keyword (description, category, account name) and/or filter by type, date range, category, account, or group. Returns matching transactions with amounts, dates, and categories.',
     inputSchema: z.object({
       query: z
         .string()
@@ -22,6 +22,7 @@ export const financialTools = {
       dateTo: z.string().optional().describe('Filter up to this date (YYYY-MM-DD)'),
       categoryId: z.string().optional().describe('Filter by category ID'),
       accountId: z.string().optional().describe('Filter by account ID'),
+      groupId: z.string().optional().describe('Filter by group ID'),
       limit: z
         .number()
         .optional()
@@ -61,7 +62,7 @@ export const financialTools = {
 
   getGroupExpenses: tool({
     description:
-      'Get expense totals for groups (shared expenses) with their IDs. Can return all groups or a specific one. Use the returned group IDs to filter transactions by group.',
+      'Get expense totals for groups (shared expenses) with their IDs and names. Call without groupId to get all groups (e.g., to find a group by name like "Winter Ski Trip"), then use the returned group ID with searchTransactions to get detailed transactions for that specific group.',
     inputSchema: z.object({
       groupId: z.string().optional().describe('Specific group ID, or omit for all groups'),
     }),
@@ -131,6 +132,16 @@ export const financialTools = {
     inputSchema: z.object({
       dateFrom: z.string().optional().describe('Filter from this date (YYYY-MM-DD)'),
       dateTo: z.string().optional().describe('Filter up to this date (YYYY-MM-DD)'),
+    }),
+  }),
+
+  convertCurrency: tool({
+    description:
+      'Convert an amount from one currency to another using current exchange rates. Use this when the user asks to convert amounts, compare across currencies, or get totals in a specific currency. Returns the converted amount with the exchange rate used.',
+    inputSchema: z.object({
+      amount: z.number().describe('Amount to convert'),
+      fromCurrency: z.string().describe('Source currency code (EUR, USD, GBP, NGN, etc.)'),
+      toCurrency: z.string().describe('Target currency code (EUR, USD, GBP, NGN, etc.)'),
     }),
   }),
 };

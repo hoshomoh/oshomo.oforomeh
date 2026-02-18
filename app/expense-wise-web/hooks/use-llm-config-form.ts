@@ -106,13 +106,26 @@ function llmConfigFormReducer(
       return { ...state, saving: action.saving };
     case 'SET_FETCHING_OLLAMA_MODELS':
       return { ...state, fetchingOllamaModels: action.fetching };
-    case 'PROVIDER_CHANGE':
-      // Just update the pointer - provider configs remain intact
+    case 'PROVIDER_CHANGE': {
+      // Update the active provider pointer; apply default model if the current one is invalid
+      const nextProviders =
+        action.defaultModel !== undefined
+          ? {
+              ...state.providers,
+              [action.provider]: {
+                ...state.providers[action.provider],
+                apiKey: state.providers[action.provider]?.apiKey ?? '',
+                model: action.defaultModel,
+              },
+            }
+          : state.providers;
       return {
         ...state,
         currentProvider: action.provider,
         ollamaModels: action.provider === 'ollama' ? state.ollamaModels : [],
+        providers: nextProviders,
       };
+    }
     case 'OLLAMA_FETCH_SUCCESS': {
       const currentModel = state.providers.ollama?.model ?? '';
       const selectedModel = action.selectedModel ?? currentModel;

@@ -10,6 +10,7 @@ import { executeToolCall } from '../lib/chat/tool-executor';
 import { HybridChatTransport } from '../lib/chat/hybrid-chat-transport';
 import { usePersistedChat } from './use-persisted-chat';
 import { useAutoScroll } from './use-auto-scroll';
+import { useExchangeRates } from './use-exchange-rates';
 import type { LLMConfig } from '../lib/types';
 
 type UseChatSessionParams = {
@@ -39,6 +40,7 @@ export function useChatSession({
   const [customError, setCustomError] = React.useState<Error | undefined>(undefined);
   const { searchIndex } = useSearch();
   const { accounts, budgets, groups } = useData();
+  const { rates: exchangeRates } = useExchangeRates();
   const { initialMessages, loaded, saveMessages, clearMessages } = usePersistedChat();
 
   // Display-only history from previous sessions — never sent to the LLM
@@ -62,6 +64,7 @@ export function useChatSession({
               accounts,
               budgets,
               groups,
+              exchangeRates,
             })
           : 'Search index is not ready. Please try again in a moment.';
       } catch (err) {
