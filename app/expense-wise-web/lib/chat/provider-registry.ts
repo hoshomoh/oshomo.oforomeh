@@ -50,6 +50,14 @@ export function getModel(
       });
       return ollama(model);
     }
+    case 'ollama-cloud': {
+      // Ollama Cloud uses the same OpenAI-compatible API hosted at ollama.com
+      const ollamaCloud = createOpenAI({
+        baseURL: 'https://ollama.com/v1',
+        apiKey,
+      });
+      return ollamaCloud(model);
+    }
     default:
       throw new Error(`Unsupported provider: ${provider}`);
   }

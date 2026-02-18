@@ -106,6 +106,35 @@ export const catalog = defineCatalog(schema, {
         accounts: z.array(accountItemSchema).describe('Account data'),
       }),
     },
+    Alert: {
+      description:
+        'A highlighted notice or warning box. Use for budget alerts, over-spending warnings, or important messages that need to stand out from regular text. Prefer "destructive" when the user is over budget or has a significant financial concern.',
+      props: z.object({
+        title: z.string().optional().describe('Short alert heading, e.g. "Over Budget"'),
+        description: z.string().describe('The alert message content'),
+        variant: z
+          .enum(['default', 'destructive'])
+          .optional()
+          .describe(
+            '"default" for informational notices, "destructive" for warnings or over-budget alerts',
+          ),
+      }),
+    },
+    Progress: {
+      description:
+        'A labelled progress bar showing percentage completion. Use for budget utilization, goal tracking, or any single percentage metric. Values above 100 indicate over-budget — the bar caps at full width but the percentage is still shown.',
+      props: z.object({
+        label: z.string().describe('Label for the metric, e.g. "Budget Used" or "Savings Goal"'),
+        value: z
+          .number()
+          .min(0)
+          .describe('Percentage value, e.g. 72 for 72%. May exceed 100 if over target.'),
+        description: z
+          .string()
+          .optional()
+          .describe('Context below the bar, e.g. "€1,800 of €2,500 used"'),
+      }),
+    },
   },
   actions: {},
 });

@@ -95,7 +95,7 @@ export function LLMConfigForm({ config, onSave }: LLMConfigFormProps) {
           </div>
         )}
 
-        {/* Ollama Base URL */}
+        {/* Ollama Local: Base URL + refresh button */}
         {provider === 'ollama' && (
           <div className="space-y-2">
             <Label htmlFor="ollamaUrl">Ollama Base URL</Label>
@@ -124,10 +124,30 @@ export function LLMConfigForm({ config, onSave }: LLMConfigFormProps) {
           </div>
         )}
 
+        {/* Ollama Cloud: fetch button (proxied server-side to avoid CORS) */}
+        {provider === 'ollama-cloud' && (
+          <div className="space-y-2">
+            <Label>Cloud Models</Label>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={fetchOllamaModels}
+              disabled={fetchingOllamaModels}
+            >
+              {fetchingOllamaModels ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Fetch Cloud Models
+            </Button>
+          </div>
+        )}
+
         {/* Model */}
         <div className="space-y-2">
           <Label htmlFor="model">Model</Label>
-          {provider === 'ollama' ? (
+          {provider === 'ollama' || provider === 'ollama-cloud' ? (
             <>
               {ollamaModels.length > 0 ? (
                 <Select value={model} onValueChange={setModel}>
@@ -138,10 +158,12 @@ export function LLMConfigForm({ config, onSave }: LLMConfigFormProps) {
                     {ollamaModels.map((m) => (
                       <SelectItem key={m.name} value={m.name}>
                         {m.name}
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          ({formatSize(m.size)}
-                          {m.details.parameter_size ? `, ${m.details.parameter_size}` : ''})
-                        </span>
+                        {provider === 'ollama' && (
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            ({formatSize(m.size)}
+                            {m.details.parameter_size ? `, ${m.details.parameter_size}` : ''})
+                          </span>
+                        )}
                       </SelectItem>
                     ))}
                   </SelectContent>

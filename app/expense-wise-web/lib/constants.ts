@@ -448,6 +448,11 @@ export const PROVIDER_META: Record<LLMProvider, ProviderMeta> = {
     requiresBaseUrl: true,
     models: [],
   },
+  'ollama-cloud': {
+    label: 'Ollama Cloud',
+    requiresApiKey: true,
+    models: [],
+  },
 };
 
 // ============================================================

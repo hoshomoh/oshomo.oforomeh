@@ -26,6 +26,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 import { TrendingUp, TrendingDown, Minus, ChevronRight } from 'lucide-react';
 import { useChatNavigation } from '../../hooks/use-chat-navigation';
 import { catalog } from './catalog';
@@ -343,6 +345,26 @@ const AccountsListComponent: ComponentFn<CatalogType, 'AccountsList'> = ({ props
   );
 };
 
+const AlertComponent: ComponentFn<CatalogType, 'Alert'> = ({ props }) => (
+  <Alert variant={props.variant}>
+    {props.title && <AlertTitle>{props.title}</AlertTitle>}
+    <AlertDescription>{props.description}</AlertDescription>
+  </Alert>
+);
+
+const ProgressComponent: ComponentFn<CatalogType, 'Progress'> = ({ props }) => (
+  <div className="space-y-2">
+    <div className="flex justify-between text-sm">
+      <span className="font-medium">{props.label}</span>
+      <span className={props.value > 100 ? 'font-medium text-red-600' : 'text-muted-foreground'}>
+        {props.value}%
+      </span>
+    </div>
+    <Progress value={Math.min(props.value, 100)} />
+    {props.description && <p className="text-xs text-muted-foreground">{props.description}</p>}
+  </div>
+);
+
 export const { registry } = defineRegistry(catalog, {
   components: {
     Text: TextComponent,
@@ -353,5 +375,7 @@ export const { registry } = defineRegistry(catalog, {
     BudgetComparisonChart: BudgetComparisonChartComponent,
     TransactionsTable: TransactionsTableComponent,
     AccountsList: AccountsListComponent,
+    Alert: AlertComponent,
+    Progress: ProgressComponent,
   },
 });

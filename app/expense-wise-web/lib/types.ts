@@ -292,7 +292,14 @@ export type ParsedGroup = {
 // ============================================================
 // LLM / Chat types
 // ============================================================
-export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'mistral' | 'groq' | 'ollama';
+export type LLMProvider =
+  | 'openai'
+  | 'anthropic'
+  | 'google'
+  | 'mistral'
+  | 'groq'
+  | 'ollama'
+  | 'ollama-cloud';
 
 // Per-provider configuration (no provider field, since it's the key)
 export type ProviderConfig = {

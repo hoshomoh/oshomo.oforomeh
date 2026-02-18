@@ -47,6 +47,31 @@ type LLMConfigFormState = {
   fetchingOllamaModels: boolean;
 };
 
+type OllamaVariant = 'ollama' | 'ollama-cloud';
+
+async function fetchLocalOllamaModels(baseUrl: string): Promise<OllamaModel[]> {
+  const cleanUrl = (baseUrl || 'http://localhost:11434').replace(/\/+$/, '');
+  const res = await fetch(`${cleanUrl}/api/tags`);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return data.models ?? [];
+}
+
+async function fetchCloudOllamaModels(apiKey: string): Promise<OllamaModel[]> {
+  const res = await fetch('/api/expense-wise-web/models', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider: 'ollama-cloud', apiKey }),
+  });
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return data.models ?? [];
+}
+
 type LLMConfigFormAction =
   | { type: 'SET_API_KEY'; provider: LLMProvider; apiKey: string }
   | { type: 'SET_MODEL'; provider: LLMProvider; model: string }
@@ -55,7 +80,12 @@ type LLMConfigFormAction =
   | { type: 'SET_SAVING'; saving: boolean }
   | { type: 'SET_FETCHING_OLLAMA_MODELS'; fetching: boolean }
   | { type: 'PROVIDER_CHANGE'; provider: LLMProvider; defaultModel?: string }
-  | { type: 'OLLAMA_FETCH_SUCCESS'; models: OllamaModel[]; selectedModel?: string }
+  | {
+      type: 'OLLAMA_FETCH_SUCCESS';
+      models: OllamaModel[];
+      selectedModel?: string;
+      provider: OllamaVariant;
+    }
   | { type: 'OLLAMA_FETCH_ERROR' };
 
 function llmConfigFormReducer(
@@ -119,28 +149,32 @@ function llmConfigFormReducer(
               },
             }
           : state.providers;
+      const isOllamaVariant = action.provider === 'ollama' || action.provider === 'ollama-cloud';
       return {
         ...state,
         currentProvider: action.provider,
-        ollamaModels: action.provider === 'ollama' ? state.ollamaModels : [],
+        ollamaModels: isOllamaVariant ? [] : [],
         providers: nextProviders,
       };
     }
     case 'OLLAMA_FETCH_SUCCESS': {
-      const currentModel = state.providers.ollama?.model ?? '';
+      const provConfig = state.providers[action.provider];
+      const currentModel = provConfig?.model ?? '';
       const selectedModel = action.selectedModel ?? currentModel;
+      const providerUpdate: ProviderConfig = {
+        apiKey: provConfig?.apiKey ?? '',
+        model: selectedModel,
+        ...(action.provider === 'ollama' && {
+          ollamaBaseUrl: provConfig?.ollamaBaseUrl ?? 'http://localhost:11434',
+        }),
+      };
       return {
         ...state,
         ollamaModels: action.models,
         fetchingOllamaModels: false,
         providers: {
           ...state.providers,
-          ollama: {
-            ...state.providers.ollama,
-            apiKey: state.providers.ollama?.apiKey ?? '',
-            model: selectedModel,
-            ollamaBaseUrl: state.providers.ollama?.ollamaBaseUrl ?? 'http://localhost:11434',
-          },
+          [action.provider]: providerUpdate,
         },
       };
     }
@@ -167,35 +201,41 @@ export function useLLMConfigForm({
   const currentConfig = state.providers[state.currentProvider];
   const providerMeta = PROVIDER_META[state.currentProvider];
 
-  const fetchOllamaModels = React.useCallback(async () => {
-    dispatch({ type: 'SET_FETCHING_OLLAMA_MODELS', fetching: true });
-    try {
-      const ollamaConfig = state.providers.ollama;
-      const baseUrl = (ollamaConfig?.ollamaBaseUrl ?? 'http://localhost:11434').replace(/\/+$/, '');
-      const res = await fetch(`${baseUrl}/api/tags`);
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
+  const fetchOllamaModels = React.useCallback(
+    async (targetProvider?: OllamaVariant) => {
+      // Guard against React's SyntheticEvent being passed via onClick={fetchOllamaModels}
+      const isValidVariant = targetProvider === 'ollama' || targetProvider === 'ollama-cloud';
+      const provider = isValidVariant ? targetProvider : (state.currentProvider as OllamaVariant);
+      dispatch({ type: 'SET_FETCHING_OLLAMA_MODELS', fetching: true });
+      try {
+        const models =
+          provider === 'ollama-cloud'
+            ? await fetchCloudOllamaModels(state.providers['ollama-cloud']?.apiKey ?? '')
+            : await fetchLocalOllamaModels(state.providers.ollama?.ollamaBaseUrl ?? '');
+        const currentModel = state.providers[provider]?.model ?? '';
+        const selectedModel =
+          models.length > 0 && !models.some((m) => m.name === currentModel)
+            ? models[0].name
+            : undefined;
+        dispatch({ type: 'OLLAMA_FETCH_SUCCESS', models, selectedModel, provider });
+        toast.success(`Found ${models.length} installed model${models.length !== 1 ? 's' : ''}`);
+      } catch {
+        toast.error(
+          provider === 'ollama-cloud'
+            ? 'Could not connect to Ollama Cloud. Check your API key.'
+            : 'Could not connect to Ollama. Make sure it is running.',
+        );
+        dispatch({ type: 'OLLAMA_FETCH_ERROR' });
       }
-      const data = await res.json();
-      const models: OllamaModel[] = data.models ?? [];
-      const currentModel = ollamaConfig?.model ?? '';
-      const selectedModel =
-        models.length > 0 && !models.some((m) => m.name === currentModel)
-          ? models[0].name
-          : undefined;
-      dispatch({ type: 'OLLAMA_FETCH_SUCCESS', models, selectedModel });
-      toast.success(`Found ${models.length} installed model${models.length !== 1 ? 's' : ''}`);
-    } catch {
-      toast.error('Could not connect to Ollama. Make sure it is running.');
-      dispatch({ type: 'OLLAMA_FETCH_ERROR' });
-    }
-  }, [state.providers]);
+    },
+    [state.providers, state.currentProvider],
+  );
 
   const handleProviderChange = React.useCallback(
     (newProvider: LLMProvider) => {
-      if (newProvider === 'ollama') {
+      if (newProvider === 'ollama' || newProvider === 'ollama-cloud') {
         dispatch({ type: 'PROVIDER_CHANGE', provider: newProvider });
-        fetchOllamaModels();
+        fetchOllamaModels(newProvider);
       } else {
         const meta = PROVIDER_META[newProvider];
         const currentModel = state.providers[newProvider]?.model ?? '';
